@@ -29,6 +29,12 @@ const StaffBookingForm = ({ id }) => {
   const [availableTimes, setAvailableTimes] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState([]);
   const [courtTimeSlots, setCourtTimeSlots] = useState([]);
+    // Validate date
+    const disabledDate = (current) => {
+      const today = moment().startOf("day");
+      const maxDate = moment().add(30, "days").endOf("day");
+      return current && (current < today || current > maxDate);
+    };
 
   console.log(bookingDetailRequestCombos);
   const [form] = Form.useForm();
@@ -122,10 +128,28 @@ const StaffBookingForm = ({ id }) => {
       const slotFilter = response.data;
       setCourtTimeSlots(response.data);
       console.log(response.data);
-      setAvailableTimes(
-        slotFilter.filter((item) => item.status == "AVAILABLE")
-      );
-      console.log(slotFilter.filter((item) => item.status == "AVAILABLE"));
+      // setAvailableTimes(
+      //   slotFilter.filter((item) => item.status == "AVAILABLE")
+      // );
+      // console.log(slotFilter.filter((item) => item.status == "AVAILABLE"));
+      const today = moment().format("YYYY-MM-DD");
+      const now = moment();
+      const twoHoursLater = now.clone().add(2, "hours");
+
+      const filteredSlots = slotFilter.filter((item) => {
+        if (date === today) {
+          const startTime = moment(item.start_time, "HH:mm");
+          return (
+            item.status === "AVAILABLE" &&
+            startTime.isBetween(now, twoHoursLater, null, "[]")
+          );
+        }
+        return item.status === "AVAILABLE";
+      });
+
+      setAvailableTimes(filteredSlots);
+      console.log(filteredSlots);
+
     } catch (error) {
       setError(error.message);
     }
@@ -232,7 +256,7 @@ const StaffBookingForm = ({ id }) => {
                 { type: 'email', message: "Please enter a valid email!" }
               ]}
             >
-              <Input placeholder="Enter your email" />
+              <Input placeholder="Enter customer's email" />
             </Form.Item>
 
             <div name="bookingType3Form" layout="vertical">
@@ -248,7 +272,7 @@ const StaffBookingForm = ({ id }) => {
                       },
                     ]}
                   >
-                    <DatePicker onChange={handleDateChange} />
+                    <DatePicker onChange={handleDateChange} disabledDate={disabledDate}/>
                   </Form.Item>
                 </div>
               </div>

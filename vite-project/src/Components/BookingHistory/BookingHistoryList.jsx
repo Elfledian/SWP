@@ -4,10 +4,10 @@ import axios from "axios";
 import api from "./../../config/axios";
 
 const BookingHistoryList = () => {
+  const accessToken = localStorage.getItem("token")
   const [customers, setCustomers] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
     const fetchCustomers = async () => {
       try {
         // const response = await api.get("/booking/customer", {
@@ -31,8 +31,9 @@ const BookingHistoryList = () => {
       }
     };
 
-    fetchCustomers();
-  }, []);
+    useEffect(() =>{
+      fetchCustomers();
+    },[])
   // console.log(customers);
   return (
     <ul className="list-group shadow-sm">
@@ -48,6 +49,7 @@ const BookingHistoryList = () => {
             type={booking?.bookingTypeId}
             bookingCreateTime={booking?.bookingDate}
             status={booking?.status}
+            reFetch={fetchCustomers}
           ></BookingHistory>
         );
       })}

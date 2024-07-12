@@ -56,8 +56,11 @@ const BookingForm = ({ children }) => {
 
 
   useEffect(() => {
-    if (userRole === "ADMIN" || userRole === "CLUB_OWNER") {
+    if (userRole === "CLUB_OWNER") {
       navigate('/error404');
+    }
+    else if (userRole === "ADMIN"){
+      navigate('/adminDashboard')
     }
   }, [userRole, navigate]);
 

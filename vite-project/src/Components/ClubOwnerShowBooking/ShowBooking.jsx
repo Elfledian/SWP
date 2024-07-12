@@ -165,7 +165,7 @@ const ShowBooking = (props) => {
                   onClick={() => showModal(booking)}
                   disabled={
                     moment().isAfter(moment(booking.bookingDate).subtract(24, 'hours'))
-                    || booking.status !== 'NOTYET'
+                    // || booking.status !== 'NOTYET'
                   }
                 >
                   Update
