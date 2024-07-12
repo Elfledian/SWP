@@ -15,7 +15,7 @@ const BookingHistory = (props) => {
 
   const isPastBooking = moment(props.bookingCreateTime).isBefore(today);
 
-
+  console.log(props.transactionStatus)
 
   const displayDetail = () => {
     showBookingDetail == false
@@ -28,18 +28,20 @@ const BookingHistory = (props) => {
   };
 
 
+  useEffect(() => {
+    const fetchTransactionData = async () => {
+      try {
+        const response = await api.get(
+          `/transactions/${props.orderID}`
+        );
+        setTransactionData(response.data);
+      } catch (error) {
+        console.error("Error fetching transaction data:", error);
+      }
+    };
+    fetchTransactionData();
+  }, [])
 
-
-  // const handleCancelBooking = async () => {
-  //   try {
-  //     const res = await api.delete(`/booking/${props.orderID}`)
-  //     console.log(res)
-  //     message.success("Cancel successful!")
-  //   } catch (error) {
-  //     message.error("An unknown error occurred, please try again.")
-  //     console.log(error)
-  //   }
-  // }
 
   const handleCancelBooking = async (bookingId) => {
     try {
@@ -92,13 +94,13 @@ const BookingHistory = (props) => {
                       </Link>
                     ) : null,
 
-                    booking.status === "COMPLETED" || booking.status === "PENDING" || booking.create? (
-                      <Popconfirm title="You will not get refund if you cancel. Confirm?" disabled={isPastBooking} onConfirm={() => handleCancelBooking(booking.orderID)}>
-                        <Button type="primary" danger disabled={isPastBooking}>
-                          Cancel Booking
-                        </Button>
-                      </Popconfirm>
-                    ) : null,
+                    // booking.status === "COMPLETED" || booking.status === "PENDING" ? (
+                    //   <Popconfirm title="You will not get refund if you cancel. Confirm?" disabled={isPastBooking} onConfirm={() => handleCancelBooking(booking.orderID)}>
+                    //     <Button type="primary" danger disabled={isPastBooking}>
+                    //       Cancel Booking
+                    //     </Button>
+                    //   </Popconfirm>
+                    // ) : null,
                   ]}
                 >
                   <List.Item.Meta

@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./QRScanner.css";
 import axios from "axios";
 import api from "../../config/axios";
+import BookingHistory from "../BookingHistory/BookingHistory";
 
 const QRScanner = () => {
   const [scanResult, setScanResult] = useState("");
@@ -151,8 +152,8 @@ const QRScanner = () => {
 
   const filteredBookingDetails = Array.isArray(bookingDetails)
     ? bookingDetails.filter(
-        (detail) => formatDate(detail.bookingDate) === today
-      )
+      (detail) => formatDate(detail.bookingDate) === today
+    )
     : [];
 
   const refreshScanner = () => {
@@ -163,6 +164,8 @@ const QRScanner = () => {
     setError(null);
     lastScannedCodeRef.current = null;
   };
+
+  
 
   return (
     <div className="container mt-5">
@@ -318,6 +321,7 @@ const QRScanner = () => {
           )}
         </div>
       </div>
+
     </div>
   );
 };
