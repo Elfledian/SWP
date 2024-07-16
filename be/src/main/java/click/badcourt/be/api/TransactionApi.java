@@ -1,6 +1,7 @@
 package click.badcourt.be.api;
 
 import click.badcourt.be.entity.Transaction;
+import click.badcourt.be.model.request.RechargeRequest;
 import click.badcourt.be.model.request.TransactionRequest;
 import click.badcourt.be.model.response.*;
 import click.badcourt.be.repository.ClubRepository;
@@ -62,6 +63,16 @@ import java.util.List;
             }catch (IllegalArgumentException e) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+        }
+        @PostMapping("/recharge")
+        public ResponseEntity<TransactionResponse> recharge(@RequestBody RechargeRequest request) {
+            Transaction createdTransaction = transactionService.RechargeTransaction(request);
+            TransactionResponse transactionResponse = new TransactionResponse();
+            transactionResponse.setId(createdTransaction.getTransactionId());
+            transactionResponse.setPaymentDate(createdTransaction.getPaymentDate());
+            transactionResponse.setTotalAmount(createdTransaction.getTotalAmount());
+
+            return ResponseEntity.ok(transactionResponse);
         }
 
         // @PreAuthorize("hasAuthority('STAFF')")

@@ -1,6 +1,7 @@
 package click.badcourt.be.entity;
 
 import click.badcourt.be.enums.RoleEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -23,6 +25,8 @@ public class Account implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)//auto generate id
     @Column(name = "account_id")
     Long accountId;
+
+    float balance=0;
 
     String password;
 
@@ -46,7 +50,13 @@ public class Account implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     RoleEnum role;
+    @JsonIgnore
+    @OneToMany(mappedBy = "fromaccount")
+    private Set<Transaction> transactionsFrom;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "toaccount", cascade = CascadeType.ALL)
+    private Set<Transaction> transactionsTo;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.toString()));

@@ -24,6 +24,14 @@ public class Transaction {
     @JoinColumn(name="booking_id")
     Booking booking;
 
+    @ManyToOne
+    @JoinColumn(name = "fromaccount")
+    Account fromaccount;
+
+    @ManyToOne
+    @JoinColumn(name = "toaccount")
+    Account toaccount;
+
     @Enumerated(EnumType.STRING)
     TransactionEnum status;
 }

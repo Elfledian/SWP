@@ -4,6 +4,7 @@ import click.badcourt.be.entity.*;
 import click.badcourt.be.enums.BookingStatusEnum;
 import click.badcourt.be.enums.TransactionEnum;
 import click.badcourt.be.model.request.QRCodeData;
+import click.badcourt.be.model.request.RechargeRequest;
 import click.badcourt.be.model.request.TransactionRequest;
 import click.badcourt.be.model.response.*;
 import click.badcourt.be.repository.*;
@@ -25,7 +26,8 @@ public class TransactionService {
 
     @Autowired
     private TransactionRepository transactionRepository;
-
+    @Autowired
+    private AuthenticationRepository authenticationRepository;
     @Autowired
     private BookingRepository bookingRepository;
     @Autowired
@@ -106,6 +108,20 @@ public class TransactionService {
             throw new IllegalArgumentException("PaymentMethod or Booking not found");
         }
     }
+    public Transaction RechargeTransaction(RechargeRequest transactionRequest)  {
+        Account account = accountUtils.getCurrentAccount();
+        Transaction createRechargeTransaction = new Transaction();
+        createRechargeTransaction.setToaccount(account);
+        createRechargeTransaction.setPaymentDate(new Date());
+        double rechargeMoney = transactionRequest.getRechargemoney();
+        account.setBalance(account.getBalance() + (float)rechargeMoney);
+        authenticationRepository.save(account);
+        createRechargeTransaction.setTotalAmount(rechargeMoney);
+        return transactionRepository.save(createRechargeTransaction);
+    }
+
+
+
 
     public Double TotalPrice(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
