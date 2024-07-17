@@ -59,7 +59,9 @@ public class TransactionService {
         }
         return transactionResponses;
     }
-//    public Transaction addTransactionPending(TransactionRequest transactionRequest) {
+
+
+    //    public Transaction addTransactionPending(TransactionRequest transactionRequest) {
 //        Optional<Booking> booking= bookingRepository.findById(transactionRequest.getBookingId());
 //        if(booking.isPresent()) {
 //            Transaction transaction = new Transaction();
@@ -108,17 +110,22 @@ public class TransactionService {
             throw new IllegalArgumentException("PaymentMethod or Booking not found");
         }
     }
-    public Transaction RechargeTransaction(RechargeRequest transactionRequest)  {
+    public Transaction RechargeTransaction(Long transactionId)  {
         Account account = accountUtils.getCurrentAccount();
-        Transaction createRechargeTransaction = new Transaction();
-        createRechargeTransaction.setToaccount(account);
-        createRechargeTransaction.setPaymentDate(new Date());
-        double rechargeMoney = transactionRequest.getRechargemoney();
-        account.setBalance(account.getBalance() + (float)rechargeMoney);
-        authenticationRepository.save(account);
-        createRechargeTransaction.setTotalAmount(rechargeMoney);
-        return transactionRepository.save(createRechargeTransaction);
+        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> new RuntimeException("Transaction not found"));
+
+        if (transaction.getStatus().equals(TransactionEnum.PENDING) && transaction.getToaccount().getAccountId().equals(account.getAccountId())) {
+            double rechargeMoney = transaction.getTotalAmount();
+            account.setBalance(account.getBalance() + (float)rechargeMoney);
+            authenticationRepository.save(account);
+
+            transaction.setStatus(TransactionEnum.RECHARGE);
+            return transactionRepository.save(transaction);
+        } else {
+            throw new RuntimeException("Invalid transaction");
+        }
     }
+
 
 
 

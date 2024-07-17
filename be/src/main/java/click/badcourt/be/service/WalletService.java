@@ -3,9 +3,13 @@ package click.badcourt.be.service;
 import click.badcourt.be.entity.Account;
 import click.badcourt.be.entity.Transaction;
 
+import click.badcourt.be.enums.TransactionEnum;
 import click.badcourt.be.model.request.RechargeRequestDTO;
 import click.badcourt.be.model.request.WalletRechargeDTO;
 
+import click.badcourt.be.model.response.TransactionResponseDTO;
+import click.badcourt.be.repository.AuthenticationRepository;
+import click.badcourt.be.repository.TransactionRepository;
 import click.badcourt.be.utils.AccountUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,44 +21,98 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.UUID;
 
 @Service
 public class WalletService {
     @Autowired
     AccountUtils accountUtils;
+    @Autowired
+    AuthenticationRepository authenticationRepository;
+    @Autowired
+    TransactionRepository transactionRepository;
+    public Transaction withDraw(double amount) {
+        Account account = accountUtils.getCurrentAccount();
+        if (account.getBalance() >= amount) {
+            Transaction transaction = new Transaction();
+            transaction.setFromaccount(account);
+            transaction.setTotalAmount(amount);
+            transaction.setStatus(TransactionEnum.WITHDRAW_PENDING);
+            transaction.setPaymentDate(new Date());
+            account.setBalance(account.getBalance() - (float)amount);
+            authenticationRepository.save(account);
+            return transactionRepository.save(transaction);
+        } else {
+            throw new RuntimeException("Insufficient balance in wallet for withdrawal.");
+        }
+    }
 
+    public List<TransactionResponseDTO> requestWithDraw() {
+        List<TransactionResponseDTO> listTransactionResponseDTO = new ArrayList<>();
+        List<Transaction> transactions = transactionRepository.findByStatus(TransactionEnum.WITHDRAW_PENDING);
+        for (Transaction transaction : transactions) {
+            TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
+            transactionResponseDTO.setTransactionID(transaction.getTransactionId());
+            transactionResponseDTO.setTransactionType(transaction.getStatus());
+            transactionResponseDTO.setAmount(transaction.getTotalAmount());
+            transactionResponseDTO.setTransactionDate(transaction.getPaymentDate());
+            transactionResponseDTO.setFrom(transaction.getFromaccount());
+            transactionResponseDTO.setTo(transaction.getToaccount());
+
+            listTransactionResponseDTO.add(transactionResponseDTO);
+        }
+        return listTransactionResponseDTO;
+    }
+
+
+
+    public Transaction acpWithDraw(Long id) {
+        Transaction transaction = transactionRepository.findById(id).orElse(null);
+        if (transaction != null && transaction.getStatus() == TransactionEnum.WITHDRAW_PENDING) {
+            transaction.setStatus(TransactionEnum.WITHDRAW_SUCCESS);
+            return transactionRepository.save(transaction);
+        } else {
+            throw new RuntimeException("Transaction not found or not in pending state.");
+        }
+    }
+
+    public Transaction rejectWithDraw(Long id, String reason) {
+        Transaction transaction = transactionRepository.findById(id).orElse(null);
+        if (transaction != null && transaction.getStatus() == TransactionEnum.WITHDRAW_PENDING) {
+            Account account = transaction.getFromaccount();
+            account.setBalance(account.getBalance() + transaction.getTotalAmount().floatValue());
+            authenticationRepository.save(account);
+            transaction.setStatus(TransactionEnum.WITHDRAW_REJECT);
+            return transactionRepository.save(transaction);
+        } else {
+            throw new RuntimeException("Transaction not found or not in pending state.");
+        }
+    }
 
     public String createUrlRecharge(WalletRechargeDTO rechargeRequestDTO) throws NoSuchAlgorithmException, InvalidKeyException, Exception{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         LocalDateTime createDate = LocalDateTime.now();
         String formattedCreateDate = createDate.format(formatter);
 
+        Account account = accountUtils.getCurrentAccount();
 
+        String orderId = UUID.randomUUID().toString().substring(0,6);
+        Transaction transaction = new Transaction();
 
-        String account = accountUtils.getCurrentAccount().getAccountId().toString();
-
-//        Wallet wallet = walletRepository.findWalletByUser_Id(user.getId());
-//
-//        Transaction transaction = new Transaction();
-//
-//        transaction.setAmount(Float.parseFloat(rechargeRequestDTO.getAmount()));
-//        transaction.setTransactionType(TransactionEnum.PENDING);
-//        transaction.setTo(wallet);
-//        transaction.setTransactionDate(formattedCreateDate);
-//        transaction.setDescription("Recharge");
-//        Transaction transactionReturn = transactionRepository.save(transaction);
+        transaction.setPaymentDate(new Date());
+        double totalAmount = Double.parseDouble(rechargeRequestDTO.getAmount());
+        transaction.setTotalAmount(totalAmount);
+        transaction.setToaccount(account);
+        transaction.setStatus(TransactionEnum.PENDING);
+        Transaction savedTransaction = transactionRepository.save(transaction);
 
         String tmnCode = "NI3BAGS1";
         String secretKey = "2AZPVYA4RTHWMOQKDGK3FR0OMSR20SKY";
         String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+        //String returnUrl = "http://badcourts.click/transactions?id=" + savedTransaction.getTransactionId();
         String returnUrl = "http://badcourts.click/transactions";
-
         String currCode = "VND";
         Map<String, String> vnpParams = new TreeMap<>();
         vnpParams.put("vnp_Version", "2.1.0");
@@ -62,8 +120,8 @@ public class WalletService {
         vnpParams.put("vnp_TmnCode", tmnCode);
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_CurrCode", currCode);
-        vnpParams.put("vnp_TxnRef", account);
-        vnpParams.put("vnp_OrderInfo","Recharge");
+        vnpParams.put("vnp_TxnRef", orderId);
+        vnpParams.put("vnp_OrderInfo","Recharge for"+orderId);
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Amount", rechargeRequestDTO.getAmount() +"00");
         vnpParams.put("vnp_ReturnUrl", returnUrl);
@@ -96,6 +154,8 @@ public class WalletService {
 
         return urlBuilder.toString();
     }
+
+
     public String createUrl(RechargeRequestDTO rechargeRequestDTO) throws NoSuchAlgorithmException, InvalidKeyException, Exception{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         LocalDateTime createDate = LocalDateTime.now();

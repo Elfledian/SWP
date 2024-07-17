@@ -1,9 +1,11 @@
 package click.badcourt.be.api;
 
 import click.badcourt.be.entity.Booking;
+import click.badcourt.be.entity.Transaction;
 import click.badcourt.be.model.request.*;
 import click.badcourt.be.model.response.BookingComboResponse;
 import click.badcourt.be.model.response.BookingResponse;
+import click.badcourt.be.model.response.TransactionResponseDTO;
 import click.badcourt.be.repository.BookingDetailRepository;
 import click.badcourt.be.repository.BookingRepository;
 import click.badcourt.be.service.BookingDetailService;
@@ -12,6 +14,7 @@ import click.badcourt.be.service.TransactionService;
 import click.badcourt.be.service.WalletService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +43,42 @@ public class WalletApi {
     private TransactionService transactionService;
     @Autowired
     private BookingRepository bookingRepository;
+    @PostMapping("/withDraw")
+    public ResponseEntity<String> withDraw(@RequestBody double amount) {
+        try {
+            Transaction transaction = walletService.withDraw(amount);
+            return ResponseEntity.ok("Withdrawal successful.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
-    @PostMapping("/recharge")
+    @GetMapping("/requestsWithDraw")
+    public ResponseEntity<List<TransactionResponseDTO>> requestWithDraw() {
+        List<TransactionResponseDTO> transactions = walletService.requestWithDraw();
+        return ResponseEntity.ok(transactions);
+    }
+
+    @PutMapping("/acceptWithDraw")
+    public ResponseEntity<String> acpWithDraw(@RequestParam Long id) {
+        try {
+            Transaction transaction = walletService.acpWithDraw(id);
+            return ResponseEntity.ok("Withdrawal accepted.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/rejectWithDraw")
+    public ResponseEntity<String> rejectWithDraw(@RequestParam Long id, @RequestParam("reason") String reason) {
+        try {
+            Transaction transaction = walletService.rejectWithDraw(id, reason);
+            return ResponseEntity.ok("Withdrawal rejected.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+    @PostMapping("/request-recharge-vnpay")
     public ResponseEntity createRechargeUrl(@RequestBody WalletRechargeDTO rechargeRequestDTO) throws Exception {
         String url= walletService.createUrlRecharge(rechargeRequestDTO);
         return ResponseEntity.ok(url);

@@ -64,9 +64,9 @@ import java.util.List;
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
-        @PostMapping("/recharge")
-        public ResponseEntity<TransactionResponse> recharge(@RequestBody RechargeRequest request) {
-            Transaction createdTransaction = transactionService.RechargeTransaction(request);
+        @PutMapping("/recharge/{transactionid}")
+        public ResponseEntity<TransactionResponse> recharge(@PathVariable long transactionid) {
+            Transaction createdTransaction = transactionService.RechargeTransaction(transactionid);
             TransactionResponse transactionResponse = new TransactionResponse();
             transactionResponse.setId(createdTransaction.getTransactionId());
             transactionResponse.setPaymentDate(createdTransaction.getPaymentDate());
