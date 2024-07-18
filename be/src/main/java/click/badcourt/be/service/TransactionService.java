@@ -48,6 +48,7 @@ public class TransactionService {
         if (account == null) {
             throw new RuntimeException("Account not found.");
         }
+
         List<Transaction> transactions = transactionRepository.findTransactionsByAccountAndStatuses(account, Arrays.asList(TransactionEnum.RECHARGE, TransactionEnum.WITHDRAW));
         List<TransactionRechargeResponse> transactionResponses = new ArrayList<>();
         for (Transaction transaction : transactions) {
@@ -186,7 +187,21 @@ public class TransactionService {
         }
     }
 
-
+    public boolean updateBalance(Long fromId, Long toId, double amount) {
+        Account fromAccount = authenticationRepository.findAccountByAccountId(fromId);
+        Account toAccount = authenticationRepository.findAccountByAccountId(toId);
+        if(fromAccount == null && toAccount == null)
+        {
+            return false;
+        }
+        else if(fromAccount != null && toAccount != null) {
+            fromAccount.setBalance(fromAccount.getBalance()-(float)amount);
+            toAccount.setBalance(toAccount.getBalance()+(float)amount);
+            authenticationRepository.save(fromAccount);
+            authenticationRepository.save(toAccount);
+            return true;
+        }else return false;
+    }
 
 
 
