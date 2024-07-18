@@ -64,31 +64,31 @@ public class WalletApi {
         }
     }
 
-    @GetMapping("/requestsWithDraw")
-    public ResponseEntity<List<TransactionResponseDTO>> requestWithDraw() {
-        List<TransactionResponseDTO> transactions = walletService.requestWithDraw();
-        return ResponseEntity.ok(transactions);
-    }
-
-    @PutMapping("/acceptWithDraw")
-    public ResponseEntity<String> acpWithDraw(@RequestParam Long id) {
-        try {
-            Transaction transaction = walletService.acpWithDraw(id);
-            return ResponseEntity.ok("Withdrawal accepted.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    @PutMapping("/rejectWithDraw")
-    public ResponseEntity<String> rejectWithDraw(@RequestParam Long id) {
-        try {
-            Transaction transaction = walletService.rejectWithDraw(id);
-            return ResponseEntity.ok("Withdrawal rejected.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
+//    @GetMapping("/requestsWithDraw")
+//    public ResponseEntity<List<TransactionResponseDTO>> requestWithDraw() {
+//        List<TransactionResponseDTO> transactions = walletService.requestWithDraw();
+//        return ResponseEntity.ok(transactions);
+//    }
+//
+//    @PutMapping("/acceptWithDraw")
+//    public ResponseEntity<String> acpWithDraw(@RequestParam Long id) {
+//        try {
+//            Transaction transaction = walletService.acpWithDraw(id);
+//            return ResponseEntity.ok("Withdrawal accepted.");
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+//        }
+//    }
+//
+//    @PutMapping("/rejectWithDraw")
+//    public ResponseEntity<String> rejectWithDraw(@RequestParam Long id) {
+//        try {
+//            Transaction transaction = walletService.rejectWithDraw(id);
+//            return ResponseEntity.ok("Withdrawal rejected.");
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+//        }
+//    }
     @PostMapping("/request-recharge-vnpay")
     public ResponseEntity createRechargeUrl(@RequestBody WalletRechargeDTO rechargeRequestDTO) throws Exception {
         String url= walletService.createUrlRecharge(rechargeRequestDTO);

@@ -48,7 +48,7 @@ public class TransactionService {
         if (account == null) {
             throw new RuntimeException("Account not found.");
         }
-        List<Transaction> transactions = transactionRepository.findTransactionsByAccountAndStatuses(account, Arrays.asList(TransactionEnum.RECHARGE, TransactionEnum.WITHDRAW_REJECT, TransactionEnum.WITHDRAW_SUCCESS));
+        List<Transaction> transactions = transactionRepository.findTransactionsByAccountAndStatuses(account, Arrays.asList(TransactionEnum.RECHARGE, TransactionEnum.WITHDRAW));
         List<TransactionRechargeResponse> transactionResponses = new ArrayList<>();
         for (Transaction transaction : transactions) {
             TransactionRechargeResponse transactionResponse = new TransactionRechargeResponse();
@@ -103,19 +103,9 @@ public class TransactionService {
         if(booking.isPresent()) {
             Transaction transaction = new Transaction();
             if(transactionRequest.getStatus().equals("00")) {
-                if (booking.get().getBookingType().getBookingTypeId() == 1){
-                    transaction.setStatus(TransactionEnum.DEPOSITED);
-                    booking.get().setStatus(BookingStatusEnum.COMPLETED);
-                    Double money = TotalPrice(transactionRequest.getBookingId()) * 0.5;
-                    integerPart = money.longValue();
-                    money = integerPart.doubleValue();
-                    transaction.setDepositAmount(money);
-                    }
-                else {
-                    transaction.setStatus(TransactionEnum.FULLY_PAID);
-                    booking.get().setStatus(BookingStatusEnum.COMPLETED);
-                    transaction.setDepositAmount(0.0);
-                }
+                transaction.setStatus(TransactionEnum.FULLY_PAID);
+                booking.get().setStatus(BookingStatusEnum.COMPLETED);
+                transaction.setDepositAmount(0.0);
                 QRCodeData qrCodeData = new QRCodeData();
                 qrCodeData.setBookingId(booking.get().getBookingId());
                 bookingService.sendBookingConfirmation(qrCodeData,booking.get().getAccount().getEmail());
@@ -138,7 +128,8 @@ public class TransactionService {
         if(booking.isPresent()) {
             Transaction transaction = new Transaction();
             Account account = accountUtils.getCurrentAccount();
-            Account clubOwner = booking.get().getClub().getAccount();
+            // Fetch the account with ID 1
+            Account designatedAccount = authenticationRepository.findById(1L).orElseThrow(() -> new IllegalArgumentException("Designated account not found"));
             double totalAmount = TotalPrice(bookingId);
             double amountToDeduct = totalAmount;
             if (booking.get().getBookingType().getBookingTypeId() == 1){
@@ -162,20 +153,22 @@ public class TransactionService {
             transaction.setPaymentDate(new Date());
             transaction.setBooking(booking.get());
             transaction.setFromaccount(account);
-            transaction.setToaccount(clubOwner);
+            // Set the designated account as the recipient
+            transaction.setToaccount(designatedAccount);
             if(account.getBalance() < amountToDeduct) {
                 throw new IllegalArgumentException("Insufficient balance");
             }
             account.setBalance((float)(account.getBalance() - amountToDeduct));
-            clubOwner.setBalance((float)(clubOwner.getBalance() + amountToDeduct));
+            designatedAccount.setBalance((float)(designatedAccount.getBalance() + amountToDeduct));
             authenticationRepository.updateBalance(account.getBalance(), account.getAccountId());
-            authenticationRepository.updateBalance(clubOwner.getBalance(), clubOwner.getAccountId());
+            authenticationRepository.updateBalance(designatedAccount.getBalance(), designatedAccount.getAccountId());
             return transactionRepository.save(transaction);
         }
         else{
             throw new IllegalArgumentException("PaymentMethod or Booking not found");
         }
     }
+
 
 
     public Transaction RechargeTransaction(Long transactionId)  {

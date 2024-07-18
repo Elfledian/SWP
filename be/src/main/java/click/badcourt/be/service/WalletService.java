@@ -52,7 +52,7 @@ public class WalletService {
             Transaction transaction = new Transaction();
             transaction.setFromaccount(account);
             transaction.setTotalAmount(amount);
-            transaction.setStatus(TransactionEnum.WITHDRAW_PENDING);
+            transaction.setStatus(TransactionEnum.WITHDRAW);
             transaction.setPaymentDate(new Date());
             account.setBalance(account.getBalance() - (float)amount);
             authenticationRepository.save(account);
@@ -63,7 +63,7 @@ public class WalletService {
     }
 
 
-    public List<TransactionResponseDTO> requestWithDraw() {
+   /* public List<TransactionResponseDTO> requestWithDraw() {
         List<TransactionResponseDTO> listTransactionResponseDTO = new ArrayList<>();
         List<Transaction> transactions = transactionRepository.findByStatus(TransactionEnum.WITHDRAW_PENDING);
         for (Transaction transaction : transactions) {
@@ -109,7 +109,7 @@ public class WalletService {
         } else {
             throw new RuntimeException("Transaction not found or not in pending state.");
         }
-    }
+    }*/
 
     public String createUrlRecharge(WalletRechargeDTO rechargeRequestDTO) throws NoSuchAlgorithmException, InvalidKeyException, Exception{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
