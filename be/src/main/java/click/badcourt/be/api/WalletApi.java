@@ -6,6 +6,7 @@ import click.badcourt.be.model.request.*;
 import click.badcourt.be.model.response.BookingComboResponse;
 import click.badcourt.be.model.response.BookingResponse;
 import click.badcourt.be.model.response.TransactionResponseDTO;
+import click.badcourt.be.repository.AuthenticationRepository;
 import click.badcourt.be.repository.BookingDetailRepository;
 import click.badcourt.be.repository.BookingRepository;
 import click.badcourt.be.service.BookingDetailService;
@@ -38,7 +39,8 @@ public class WalletApi {
 
     @Autowired
     BookingDetailRepository bookingDetailRepository;
-
+    @Autowired
+    AuthenticationRepository authenticationRepository;
     @Autowired
     private TransactionService transactionService;
     @Autowired
@@ -47,9 +49,18 @@ public class WalletApi {
     public ResponseEntity<String> withDraw(@RequestBody double amount) {
         try {
             Transaction transaction = walletService.withDraw(amount);
-            return ResponseEntity.ok("Withdrawal successful.");
+            return ResponseEntity.ok("Withdrawal in progress.");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+    @GetMapping("/getBalance/{accountId}")
+    public ResponseEntity<Float> getBalance(@PathVariable Long accountId) {
+        try {
+            float balance = walletService.getBalance(accountId);
+            return new ResponseEntity<>(balance, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
@@ -70,9 +81,9 @@ public class WalletApi {
     }
 
     @PutMapping("/rejectWithDraw")
-    public ResponseEntity<String> rejectWithDraw(@RequestParam Long id, @RequestParam("reason") String reason) {
+    public ResponseEntity<String> rejectWithDraw(@RequestParam Long id) {
         try {
-            Transaction transaction = walletService.rejectWithDraw(id, reason);
+            Transaction transaction = walletService.rejectWithDraw(id);
             return ResponseEntity.ok("Withdrawal rejected.");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

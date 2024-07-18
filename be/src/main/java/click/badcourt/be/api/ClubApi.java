@@ -38,7 +38,7 @@ public class ClubApi {
     @GetMapping("club")
     public ResponseEntity<?> getClubOnClubOwnerPage(){
         try{
-        return ResponseEntity.ok(clubService.getClubByCurrentAccount());
+            return ResponseEntity.ok(clubService.getClubByCurrentAccount());
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -47,7 +47,7 @@ public class ClubApi {
     public ResponseEntity getClub(@PathVariable("address") String address){
         return ResponseEntity.ok(clubService.findClubResponsesByAddress(address));
     }
-//    @PreAuthorize("hasAuthority('ADMIN')")
+    //    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("club")
     public ResponseEntity addClub(@RequestBody ClubCreateRequest clubCreateRequest){
         try {

@@ -29,6 +29,15 @@ import java.util.List;
 
         @Autowired
         private ClubRepository clubRepository;
+        @GetMapping("/rechargeTransactions/{accountId}")
+        public ResponseEntity<List<TransactionRechargeResponse>> getRechargeTransactions(@PathVariable Long accountId) {
+            try {
+                List<TransactionRechargeResponse> transactions = transactionService.getRechargeTransactions(accountId);
+                return new ResponseEntity<>(transactions, HttpStatus.OK);
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
 
         @GetMapping("/totalAmountByMonth")
         public List<TotalAmountByMonthDTO> getTotalAmountByMonth(@RequestParam int year) {
@@ -64,7 +73,7 @@ import java.util.List;
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
-        @PutMapping("/recharge/{transactionid}")
+        @PutMapping("/rechargeTransaction/{transactionid}")
         public ResponseEntity<TransactionResponse> recharge(@PathVariable long transactionid) {
             Transaction createdTransaction = transactionService.RechargeTransaction(transactionid);
             TransactionResponse transactionResponse = new TransactionResponse();
@@ -92,8 +101,26 @@ import java.util.List;
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
             }
         }
+        @PostMapping("/booking-with-wallet/{bookingId}")
+        public ResponseEntity addTransactionWallet(@PathVariable Long bookingId) {
+            try {
+                Transaction createdTransaction = transactionService.addTransactionWallet(bookingId);
+                TransactionResponse transactionResponse = new TransactionResponse();
+                transactionResponse.setId(createdTransaction.getTransactionId());
+                transactionResponse.setDepositAmount(createdTransaction.getDepositAmount());
+                transactionResponse.setPaymentDate(createdTransaction.getPaymentDate());
+                transactionResponse.setTotalAmount(createdTransaction.getTotalAmount());
+                transactionResponse.setBookingId(createdTransaction.getBooking().getBookingId());
+                transactionResponse.setStatus(createdTransaction.getStatus().toString());
+                return ResponseEntity.ok(transactionResponse);
+            } catch (IllegalArgumentException | MessagingException | IOException | WriterException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+        }
 
-//        @PutMapping("/{id}")
+
+
+        //        @PutMapping("/{id}")
 //        public ResponseEntity<Transaction> updateTransaction(@PathVariable Long id, @RequestBody TransactionRequest request) {
 //            Transaction updatedTransaction = transactionService.updateTransaction(request, id);
 //            return ResponseEntity.ok(updatedTransaction);

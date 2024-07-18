@@ -33,7 +33,20 @@ public class WalletService {
     AuthenticationRepository authenticationRepository;
     @Autowired
     TransactionRepository transactionRepository;
+    public float getBalance(Long accountId) {
+        Account account = authenticationRepository.findById(accountId).orElse(null);
+        if (account != null) {
+            return account.getBalance();
+        } else {
+            throw new RuntimeException("Account not found.");
+        }
+    }
+
     public Transaction withDraw(double amount) {
+        double minWithdrawalAmount = 1000.0;
+        if (amount < minWithdrawalAmount) {
+            throw new RuntimeException("The minimum withdrawal amount is " + minWithdrawalAmount);
+        }
         Account account = accountUtils.getCurrentAccount();
         if (account.getBalance() >= amount) {
             Transaction transaction = new Transaction();
@@ -49,6 +62,7 @@ public class WalletService {
         }
     }
 
+
     public List<TransactionResponseDTO> requestWithDraw() {
         List<TransactionResponseDTO> listTransactionResponseDTO = new ArrayList<>();
         List<Transaction> transactions = transactionRepository.findByStatus(TransactionEnum.WITHDRAW_PENDING);
@@ -58,13 +72,19 @@ public class WalletService {
             transactionResponseDTO.setTransactionType(transaction.getStatus());
             transactionResponseDTO.setAmount(transaction.getTotalAmount());
             transactionResponseDTO.setTransactionDate(transaction.getPaymentDate());
-            transactionResponseDTO.setFrom(transaction.getFromaccount());
-            transactionResponseDTO.setTo(transaction.getToaccount());
+            transactionResponseDTO.setFromEmail(transaction.getFromaccount().getEmail());
+
 
             listTransactionResponseDTO.add(transactionResponseDTO);
         }
+
+        if (listTransactionResponseDTO.isEmpty()) {
+            System.out.println("There are no withdrawals at the moment");
+        }
+
         return listTransactionResponseDTO;
     }
+
 
 
 
@@ -78,7 +98,7 @@ public class WalletService {
         }
     }
 
-    public Transaction rejectWithDraw(Long id, String reason) {
+    public Transaction rejectWithDraw(Long id) {
         Transaction transaction = transactionRepository.findById(id).orElse(null);
         if (transaction != null && transaction.getStatus() == TransactionEnum.WITHDRAW_PENDING) {
             Account account = transaction.getFromaccount();
@@ -111,7 +131,7 @@ public class WalletService {
         String tmnCode = "NI3BAGS1";
         String secretKey = "2AZPVYA4RTHWMOQKDGK3FR0OMSR20SKY";
         String vnpUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-        //String returnUrl = "http://badcourts.click/transactions?id=" + savedTransaction.getTransactionId();
+        //String returnUrl = "http://badcourts.click/transactions" + savedTransaction.getTransactionId();
         String returnUrl = "http://badcourts.click/transactions";
         String currCode = "VND";
         Map<String, String> vnpParams = new TreeMap<>();
@@ -120,8 +140,8 @@ public class WalletService {
         vnpParams.put("vnp_TmnCode", tmnCode);
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_CurrCode", currCode);
-        vnpParams.put("vnp_TxnRef", orderId);
-        vnpParams.put("vnp_OrderInfo","Recharge for"+orderId);
+        vnpParams.put("vnp_TxnRef", savedTransaction.getTransactionId().toString());
+        vnpParams.put("vnp_OrderInfo",savedTransaction.getTransactionId().toString());
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Amount", rechargeRequestDTO.getAmount() +"00");
         vnpParams.put("vnp_ReturnUrl", returnUrl);

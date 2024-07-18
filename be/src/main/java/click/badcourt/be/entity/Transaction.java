@@ -20,7 +20,7 @@ public class Transaction {
     private Date paymentDate;
     private Double totalAmount;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name="booking_id")
     Booking booking;
 

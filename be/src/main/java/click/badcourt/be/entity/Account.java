@@ -26,7 +26,7 @@ public class Account implements UserDetails {
     @Column(name = "account_id")
     Long accountId;
 
-    float balance=0;
+    float balance = 0;
 
     String password;
 

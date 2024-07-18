@@ -4,6 +4,7 @@ import click.badcourt.be.entity.*;
 import click.badcourt.be.enums.BookingDetailStatusEnum;
 import click.badcourt.be.enums.BookingStatusEnum;
 import click.badcourt.be.enums.RoleEnum;
+import click.badcourt.be.enums.TransactionEnum;
 import click.badcourt.be.model.request.*;
 import click.badcourt.be.model.response.BookingComboResponse;
 import click.badcourt.be.model.response.BookingResponse;
@@ -52,7 +53,8 @@ public class BookingService {
 
     @Autowired
     private EmailService emailService;
-
+    @Autowired
+    private  TransactionRepository transactionRepository;
     @Autowired
     private BookingTypeRepository bookingTypeRepository;
     private QRCodeService qrCodeService;
@@ -277,12 +279,57 @@ public class BookingService {
             throw new IllegalArgumentException("Account or court not found");
         }
     }
-
-    public void cancelBooking(Long bookingId){
+    /*public void cancelBooking(Long bookingId){
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
         booking.setStatus(BookingStatusEnum.CANCELED);
         bookingRepository.save(booking);
+    }*/
+    public void cancelBooking(Long bookingId){
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
+        booking.setStatus(BookingStatusEnum.CANCELED);
+        List<Transaction> transactions = booking.getTransaction();
+        float refundAmount = 0;
+        String transactionStatus = "";
+       Transaction transactionType = new Transaction();
+        for (Transaction transaction: transactions){
+            if (transaction.getStatus() == TransactionEnum.DEPOSITED) {
+                refundAmount = (float) (transaction.getDepositAmount() * 0.6);
+                transactionStatus = "DEPOSITED";
+                transactionType = transaction;
+            } else if (transaction.getStatus() == TransactionEnum.FULLY_PAID) {
+                refundAmount = (float) (transaction.getTotalAmount() * 0.6);
+                transactionStatus = "FULLYPAID";
+                transactionType = transaction;
+            }
+        }
+        if (refundAmount > 0) {
+            Account customerAccount = transactionType.getFromaccount();
+            customerAccount.setBalance(customerAccount.getBalance() + refundAmount);
+            Account clubOwnerAccount = transactionType.getToaccount();
+            clubOwnerAccount.setBalance(clubOwnerAccount.getBalance() - refundAmount);
+
+            Transaction refundTransaction = new Transaction();
+            refundTransaction.setFromaccount(transactionType.getFromaccount());
+            refundTransaction.setToaccount(transactionType.getToaccount());
+            //refundTransaction.setDepositAmount(Double.valueOf(refundAmount));
+            refundTransaction.setTotalAmount(Double.valueOf(refundAmount));
+            refundTransaction.setBooking(transactionType.getBooking());
+            refundTransaction.setStatus(TransactionEnum.REFUND);
+            refundTransaction.setPaymentDate(new Date());
+
+
+            transactionRepository.save(refundTransaction);
+
+            bookingRepository.save(booking);
+            authenticationRepository.save(customerAccount);
+            authenticationRepository.save(clubOwnerAccount);
+            System.out.println("Transaction Status: " + transactionStatus);
+            System.out.println("Refund Amount: " + refundAmount);
+        }
     }
+
+
+
     public void sendBookingConfirmation(QRCodeData data,String email) throws WriterException, IOException, MessagingException {
         System.out.println(email);
         EmailDetail emailDetail = new EmailDetail();

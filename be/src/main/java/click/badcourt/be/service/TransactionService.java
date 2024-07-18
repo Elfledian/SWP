@@ -43,6 +43,29 @@ public class TransactionService {
 
     public Long integerPart;
 
+    public List<TransactionRechargeResponse> getRechargeTransactions(Long accountId) {
+        Account account = authenticationRepository.findById(accountId).orElse(null);
+        if (account == null) {
+            throw new RuntimeException("Account not found.");
+        }
+        List<Transaction> transactions = transactionRepository.findTransactionsByAccountAndStatuses(account, Arrays.asList(TransactionEnum.RECHARGE, TransactionEnum.WITHDRAW_REJECT, TransactionEnum.WITHDRAW_SUCCESS));
+        List<TransactionRechargeResponse> transactionResponses = new ArrayList<>();
+        for (Transaction transaction : transactions) {
+            TransactionRechargeResponse transactionResponse = new TransactionRechargeResponse();
+            transactionResponse.setTransactionId(transaction.getTransactionId());
+            transactionResponse.setTransactionDate(transaction.getPaymentDate());
+            transactionResponse.setTransactionStatus(transaction.getStatus());
+            /*if (transaction.getStatus() == TransactionEnum.WITHDRAW_REJECT || transaction.getStatus() == TransactionEnum.WITHDRAW_SUCCESS) {
+                transactionResponse.setAccountBalance(transaction.getFromaccount().getBalance());
+            } else {
+                transactionResponse.setAccountBalance(transaction.getToaccount().getBalance());
+            }*/
+            transactionResponse.setTotalAmount(transaction.getTotalAmount());
+            transactionResponses.add(transactionResponse);
+        }
+        return transactionResponses;
+    }
+
 
     public List<TransactionResponse> findAll() {
         List<Transaction> transactions = transactionRepository.findAll();
@@ -110,6 +133,51 @@ public class TransactionService {
             throw new IllegalArgumentException("PaymentMethod or Booking not found");
         }
     }
+    public Transaction addTransactionWallet(Long bookingId) throws MessagingException, IOException, WriterException {
+        Optional<Booking> booking= bookingRepository.findById(bookingId);
+        if(booking.isPresent()) {
+            Transaction transaction = new Transaction();
+            Account account = accountUtils.getCurrentAccount();
+            Account clubOwner = booking.get().getClub().getAccount();
+            double totalAmount = TotalPrice(bookingId);
+            double amountToDeduct = totalAmount;
+            if (booking.get().getBookingType().getBookingTypeId() == 1){
+                transaction.setStatus(TransactionEnum.DEPOSITED);
+                booking.get().setStatus(BookingStatusEnum.COMPLETED);
+                Double money = totalAmount * 0.5;
+                integerPart = money.longValue();
+                money = integerPart.doubleValue();
+                transaction.setDepositAmount(money);
+                amountToDeduct = money;
+            }
+            else {
+                transaction.setStatus(TransactionEnum.FULLY_PAID);
+                booking.get().setStatus(BookingStatusEnum.COMPLETED);
+                transaction.setDepositAmount(0.0);
+            }
+            QRCodeData qrCodeData = new QRCodeData();
+            qrCodeData.setBookingId(booking.get().getBookingId());
+            bookingService.sendBookingConfirmation(qrCodeData,booking.get().getAccount().getEmail());
+            transaction.setTotalAmount(totalAmount);
+            transaction.setPaymentDate(new Date());
+            transaction.setBooking(booking.get());
+            transaction.setFromaccount(account);
+            transaction.setToaccount(clubOwner);
+            if(account.getBalance() < amountToDeduct) {
+                throw new IllegalArgumentException("Insufficient balance");
+            }
+            account.setBalance((float)(account.getBalance() - amountToDeduct));
+            clubOwner.setBalance((float)(clubOwner.getBalance() + amountToDeduct));
+            authenticationRepository.updateBalance(account.getBalance(), account.getAccountId());
+            authenticationRepository.updateBalance(clubOwner.getBalance(), clubOwner.getAccountId());
+            return transactionRepository.save(transaction);
+        }
+        else{
+            throw new IllegalArgumentException("PaymentMethod or Booking not found");
+        }
+    }
+
+
     public Transaction RechargeTransaction(Long transactionId)  {
         Account account = accountUtils.getCurrentAccount();
         Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> new RuntimeException("Transaction not found"));
@@ -118,7 +186,6 @@ public class TransactionService {
             double rechargeMoney = transaction.getTotalAmount();
             account.setBalance(account.getBalance() + (float)rechargeMoney);
             authenticationRepository.save(account);
-
             transaction.setStatus(TransactionEnum.RECHARGE);
             return transactionRepository.save(transaction);
         } else {

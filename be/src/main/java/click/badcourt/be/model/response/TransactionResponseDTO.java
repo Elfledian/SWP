@@ -14,7 +14,7 @@ public class TransactionResponseDTO {
     private Double amount;
     @DateTimeFormat(pattern="yyyy-MM-dd")
     private Date transactionDate;
-    private Account from;
-    private Account to;
+    private String fromEmail;
+
 
 }

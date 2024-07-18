@@ -31,8 +31,8 @@ public class Booking {
     @OneToOne(mappedBy = "booking")
     FeedBack feedback;
 
-    @OneToOne(mappedBy = "booking")
-    Transaction transaction;
+    @OneToMany(mappedBy = "booking")
+    List<Transaction> transaction;
 
     @OneToMany(mappedBy = "booking")
 
