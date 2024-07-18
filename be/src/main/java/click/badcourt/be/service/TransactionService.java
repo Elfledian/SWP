@@ -104,9 +104,19 @@ public class TransactionService {
         if(booking.isPresent()) {
             Transaction transaction = new Transaction();
             if(transactionRequest.getStatus().equals("00")) {
-                transaction.setStatus(TransactionEnum.FULLY_PAID);
-                booking.get().setStatus(BookingStatusEnum.COMPLETED);
-                transaction.setDepositAmount(0.0);
+                if (booking.get().getBookingType().getBookingTypeId() == 1){
+                    transaction.setStatus(TransactionEnum.DEPOSITED);
+                    booking.get().setStatus(BookingStatusEnum.COMPLETED);
+                    Double money = TotalPrice(transactionRequest.getBookingId()) * 0.5;
+                    integerPart = money.longValue();
+                    money = integerPart.doubleValue();
+                    transaction.setDepositAmount(money);
+                    }
+                else {
+                    transaction.setStatus(TransactionEnum.FULLY_PAID);
+                    booking.get().setStatus(BookingStatusEnum.COMPLETED);
+                    transaction.setDepositAmount(0.0);
+                }
                 QRCodeData qrCodeData = new QRCodeData();
                 qrCodeData.setBookingId(booking.get().getBookingId());
                 bookingService.sendBookingConfirmation(qrCodeData,booking.get().getAccount().getEmail());
@@ -133,20 +143,9 @@ public class TransactionService {
             Account designatedAccount = authenticationRepository.findById(1L).orElseThrow(() -> new IllegalArgumentException("Designated account not found"));
             double totalAmount = TotalPrice(bookingId);
             double amountToDeduct = totalAmount;
-            if (booking.get().getBookingType().getBookingTypeId() == 1){
-                transaction.setStatus(TransactionEnum.DEPOSITED);
-                booking.get().setStatus(BookingStatusEnum.COMPLETED);
-                Double money = totalAmount * 0.5;
-                integerPart = money.longValue();
-                money = integerPart.doubleValue();
-                transaction.setDepositAmount(money);
-                amountToDeduct = money;
-            }
-            else {
-                transaction.setStatus(TransactionEnum.FULLY_PAID);
-                booking.get().setStatus(BookingStatusEnum.COMPLETED);
-                transaction.setDepositAmount(0.0);
-            }
+            transaction.setStatus(TransactionEnum.FULLY_PAID);
+            booking.get().setStatus(BookingStatusEnum.COMPLETED);
+            transaction.setDepositAmount(0.0);
             QRCodeData qrCodeData = new QRCodeData();
             qrCodeData.setBookingId(booking.get().getBookingId());
             bookingService.sendBookingConfirmation(qrCodeData,booking.get().getAccount().getEmail());
