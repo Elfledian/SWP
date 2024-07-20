@@ -117,8 +117,7 @@ public class AuthenticationApi {
     @PutMapping("/updateNameAndPhone")
     public ResponseEntity updateFullNameAndPhone(@RequestBody AccountUpdateRequest accountUpdateRequest) {
         try{
-            authenticationService.updateNameAndPhone(accountUpdateRequest);
-            return new ResponseEntity<>("Update Successfully !", HttpStatus.OK);
+            return ResponseEntity.ok(authenticationService.updateNameAndPhone(accountUpdateRequest));
         }catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

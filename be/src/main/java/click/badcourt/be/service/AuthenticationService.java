@@ -9,6 +9,7 @@ import click.badcourt.be.model.request.*;
 import click.badcourt.be.model.response.AccountManageResponse;
 import click.badcourt.be.model.response.AccountManageResponseProfile;
 import click.badcourt.be.model.response.AccountResponse;
+import click.badcourt.be.model.response.AccountUpdateResponse;
 import click.badcourt.be.repository.AuthenticationRepository;
 import click.badcourt.be.repository.ClubRepository;
 import click.badcourt.be.utils.AccountUtils;
@@ -101,11 +102,15 @@ public class AuthenticationService implements UserDetailsService {
         return false;
     }
 
-    public void updateNameAndPhone(AccountUpdateRequest accountUpdateRequest) {
+    public AccountUpdateResponse updateNameAndPhone(AccountUpdateRequest accountUpdateRequest) {
         Account account = accountUtils.getCurrentAccount();
         account.setFullName(accountUpdateRequest.getFullName());
         account.setPhone(accountUpdateRequest.getPhone());
         authenticationRepository.save(account);
+        AccountUpdateResponse accountUpdateResponse = new AccountUpdateResponse();
+        accountUpdateResponse.setFullName(accountUtils.getCurrentAccount().getFullName());
+        accountUpdateResponse.setPhone(accountUtils.getCurrentAccount().getPhone());
+        return accountUpdateResponse;
     }
 
 
