@@ -83,6 +83,22 @@ public class TransactionService {
         }
         return transactionResponses;
     }
+    public List<TransactionUnderTopUpResponse> findAllByFromAccountId(Long accountId) {
+        List<Transaction> transactions = transactionRepository.findAllByFromaccount_AccountId(accountId);
+        List<TransactionUnderTopUpResponse> transactionResponses = new ArrayList<>();
+        for (Transaction transaction : transactions) {
+            if (transaction.getStatus() == TransactionEnum.FULLY_PAID || transaction.getStatus() == TransactionEnum.REFUND) {
+                TransactionUnderTopUpResponse transactionResponse = new TransactionUnderTopUpResponse();
+                transactionResponse.setTransactionid(transaction.getTransactionId());
+                transactionResponse.setTransactiondate(transaction.getPaymentDate());
+                transactionResponse.setTransactionstatus(transaction.getStatus());
+                transactionResponse.setTotalamount(transaction.getTotalAmount());
+                transactionResponse.setBookingid(transaction.getBooking().getBookingId());
+                transactionResponses.add(transactionResponse);
+            }
+        }
+        return transactionResponses;
+    }
 
 
     //    public Transaction addTransactionPending(TransactionRequest transactionRequest) {
@@ -137,12 +153,17 @@ public class TransactionService {
     public Transaction addTransactionWallet(Long bookingId) throws MessagingException, IOException, WriterException {
         Optional<Booking> booking= bookingRepository.findById(bookingId);
         if(booking.isPresent()) {
-            Transaction transaction = new Transaction();
             Account account = accountUtils.getCurrentAccount();
-            // Fetch the account with ID 1
-            Account designatedAccount = authenticationRepository.findById(1L).orElseThrow(() -> new IllegalArgumentException("Designated account not found"));
             double totalAmount = TotalPrice(bookingId);
             double amountToDeduct = totalAmount;
+
+            if(account.getBalance() < amountToDeduct) {
+                throw new IllegalArgumentException("Insufficient balance");
+            }
+
+            Transaction transaction = new Transaction();
+            Account designatedAccount = authenticationRepository.findById(1L).orElseThrow(() -> new IllegalArgumentException("Designated account not found"));
+
             transaction.setStatus(TransactionEnum.FULLY_PAID);
             booking.get().setStatus(BookingStatusEnum.COMPLETED);
             transaction.setDepositAmount(0.0);
@@ -153,11 +174,8 @@ public class TransactionService {
             transaction.setPaymentDate(new Date());
             transaction.setBooking(booking.get());
             transaction.setFromaccount(account);
-            // Set the designated account as the recipient
             transaction.setToaccount(designatedAccount);
-            if(account.getBalance() < amountToDeduct) {
-                throw new IllegalArgumentException("Insufficient balance");
-            }
+
             account.setBalance((float)(account.getBalance() - amountToDeduct));
             designatedAccount.setBalance((float)(designatedAccount.getBalance() + amountToDeduct));
             authenticationRepository.updateBalance(account.getBalance(), account.getAccountId());
@@ -168,6 +186,7 @@ public class TransactionService {
             throw new IllegalArgumentException("PaymentMethod or Booking not found");
         }
     }
+
 
 
 

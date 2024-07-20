@@ -284,49 +284,95 @@ public class BookingService {
         booking.setStatus(BookingStatusEnum.CANCELED);
         bookingRepository.save(booking);
     }*/
+//    public void cancelBooking(Long bookingId){
+//        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
+//        booking.setStatus(BookingStatusEnum.CANCELED);
+//        List<Transaction> transactions = booking.getTransaction();
+//        float refundAmount = 0;
+//        String transactionStatus = "";
+//       Transaction transactionType = new Transaction();
+//        for (Transaction transaction: transactions){
+//            if (transaction.getStatus() == TransactionEnum.DEPOSITED) {
+//                refundAmount = (float) (transaction.getDepositAmount() * 0.6);
+//                transactionStatus = "DEPOSITED";
+//                transactionType = transaction;
+//            } else if (transaction.getStatus() == TransactionEnum.FULLY_PAID) {
+//                refundAmount = (float) (transaction.getTotalAmount() * 0.6);
+//                transactionStatus = "FULLYPAID";
+//                transactionType = transaction;
+//            }
+//        }
+//        if (refundAmount > 0) {
+//            Account customerAccount = transactionType.getFromaccount();
+//            customerAccount.setBalance(customerAccount.getBalance() + refundAmount);
+//            Account clubOwnerAccount = transactionType.getToaccount();
+//            clubOwnerAccount.setBalance(clubOwnerAccount.getBalance() - refundAmount);
+//
+//            Transaction refundTransaction = new Transaction();
+//            refundTransaction.setFromaccount(transactionType.getFromaccount());
+//            refundTransaction.setToaccount(transactionType.getToaccount());
+//            //refundTransaction.setDepositAmount(Double.valueOf(refundAmount));
+//            refundTransaction.setTotalAmount(Double.valueOf(refundAmount));
+//            refundTransaction.setBooking(transactionType.getBooking());
+//            refundTransaction.setStatus(TransactionEnum.REFUND);
+//            refundTransaction.setPaymentDate(new Date());
+//
+//
+//            transactionRepository.save(refundTransaction);
+//
+//            bookingRepository.save(booking);
+//            authenticationRepository.save(customerAccount);
+//            authenticationRepository.save(clubOwnerAccount);
+//            System.out.println("Transaction Status: " + transactionStatus);
+//            System.out.println("Refund Amount: " + refundAmount);
+//        }
+//    }
     public void cancelBooking(Long bookingId){
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new RuntimeException("Booking not found"));
         booking.setStatus(BookingStatusEnum.CANCELED);
         List<Transaction> transactions = booking.getTransaction();
         float refundAmount = 0;
-        String transactionStatus = "";
-       Transaction transactionType = new Transaction();
+        Transaction transactionType = new Transaction();
         for (Transaction transaction: transactions){
-            if (transaction.getStatus() == TransactionEnum.DEPOSITED) {
-                refundAmount = (float) (transaction.getDepositAmount() * 0.6);
-                transactionStatus = "DEPOSITED";
-                transactionType = transaction;
-            } else if (transaction.getStatus() == TransactionEnum.FULLY_PAID) {
+            if (transaction.getStatus() == TransactionEnum.FULLY_PAID) {
                 refundAmount = (float) (transaction.getTotalAmount() * 0.6);
-                transactionStatus = "FULLYPAID";
                 transactionType = transaction;
             }
         }
         if (refundAmount > 0) {
             Account customerAccount = transactionType.getFromaccount();
             customerAccount.setBalance(customerAccount.getBalance() + refundAmount);
-            Account clubOwnerAccount = transactionType.getToaccount();
-            clubOwnerAccount.setBalance(clubOwnerAccount.getBalance() - refundAmount);
+
+            Account clubOwnerAccount = booking.getClub().getAccount();
+            float clubOwnerRefund = (float) (transactionType.getTotalAmount() * 0.35);
+            clubOwnerAccount.setBalance(clubOwnerAccount.getBalance() + clubOwnerRefund);
+
+            Account toAccount = authenticationRepository.findById(1L).orElseThrow(() -> new RuntimeException("Account not found"));
+            toAccount.setBalance(toAccount.getBalance() - (float)(double)transactionType.getTotalAmount());
+
+            float toAccountRefund = (float)(transactionType.getTotalAmount() * 0.05);
+            toAccount.setBalance(toAccount.getBalance() + toAccountRefund);
 
             Transaction refundTransaction = new Transaction();
             refundTransaction.setFromaccount(transactionType.getFromaccount());
             refundTransaction.setToaccount(transactionType.getToaccount());
-            //refundTransaction.setDepositAmount(Double.valueOf(refundAmount));
             refundTransaction.setTotalAmount(Double.valueOf(refundAmount));
             refundTransaction.setBooking(transactionType.getBooking());
             refundTransaction.setStatus(TransactionEnum.REFUND);
             refundTransaction.setPaymentDate(new Date());
 
-
             transactionRepository.save(refundTransaction);
-
             bookingRepository.save(booking);
             authenticationRepository.save(customerAccount);
             authenticationRepository.save(clubOwnerAccount);
-            System.out.println("Transaction Status: " + transactionStatus);
+            authenticationRepository.save(toAccount);
+            System.out.println("Transaction Status: FULLY_PAID");
             System.out.println("Refund Amount: " + refundAmount);
         }
     }
+
+
+
 
 
 

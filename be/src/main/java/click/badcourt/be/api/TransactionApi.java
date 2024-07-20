@@ -26,6 +26,15 @@ import java.util.List;
 
         @Autowired
         private TransactionService transactionService;
+        @GetMapping("/transactionsByAccount/{accountId}")
+        public ResponseEntity<List<TransactionUnderTopUpResponse>> getTransactionsByAccount(@PathVariable Long accountId) {
+            try {
+                List<TransactionUnderTopUpResponse> transactions = transactionService.findAllByFromAccountId(accountId);
+                return new ResponseEntity<>(transactions, HttpStatus.OK);
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
 
         @Autowired
         private ClubRepository clubRepository;
