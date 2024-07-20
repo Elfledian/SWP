@@ -9,10 +9,7 @@ import click.badcourt.be.model.response.TransactionResponseDTO;
 import click.badcourt.be.repository.AuthenticationRepository;
 import click.badcourt.be.repository.BookingDetailRepository;
 import click.badcourt.be.repository.BookingRepository;
-import click.badcourt.be.service.BookingDetailService;
-import click.badcourt.be.service.BookingService;
-import click.badcourt.be.service.TransactionService;
-import click.badcourt.be.service.WalletService;
+import click.badcourt.be.service.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,6 +33,9 @@ public class WalletApi {
 
     @Autowired
     BookingDetailService bookingDetailService;
+
+    @Autowired
+    private MomoService momoPaymentService;
 
     @Autowired
     BookingDetailRepository bookingDetailRepository;
@@ -94,11 +94,27 @@ public class WalletApi {
         String url= walletService.createUrlRecharge(rechargeRequestDTO);
         return ResponseEntity.ok(url);
     }
+    @Autowired
+    private MomoService momoService;
     @PostMapping()
     public ResponseEntity createUrl(@RequestBody RechargeRequestDTO rechargeRequestDTO) throws Exception {
         String url= walletService.createUrl(rechargeRequestDTO);
         return ResponseEntity.ok(url);
     }
+    @PostMapping("/momo")
+    public ResponseEntity<String> createPayment(@RequestBody PaymentRequest paymentRequest) {
+        try {
+            String paymentUrl = momoPaymentService.createPaymentUrl(
+                    paymentRequest.getAmount(),
+                    paymentRequest.getOrderInfo(),
+                    paymentRequest.getExtraData()
+            );
+            return ResponseEntity.ok(paymentUrl);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
+
     @GetMapping("/params")
     public ResponseEntity getUrlParams(@RequestParam String url) throws Exception {
         Map<String, String> params = walletService.getUrlParameters(url);

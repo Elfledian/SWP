@@ -33,16 +33,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender javaMailSender;
     private QRCodeService qrCodeService;
-    private static final String CHARACTERS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    private static final SecureRandom random = new SecureRandom();
 
-    public static String generateOTP(int length) {
-        StringBuilder otp = new StringBuilder(length);
-        for (int i = 0; i < length; i++) {
-            otp.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
-        }
-        return otp.toString();
-    }
 
     public void sendMailTemplate(EmailDetail emailDetail){
         try{

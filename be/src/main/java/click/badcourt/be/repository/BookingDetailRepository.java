@@ -30,5 +30,10 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail,Lon
             "JOIN booking b ON bd.from_booking = b.booking_id " +
             "WHERE DATE(bd.date) = DATE(:date) AND b.status != 'CANCELED'", nativeQuery = true)
     List<BookingDetail> findBookingDetailsForTomorrow(Date date);
+    @Query(value= "SELECT bd FROM BookingDetail bd " +
+            "JOIN bd.booking b " +
+            "WHERE b.status = 'COMPLETED' AND bd.date < :date " +
+            "ORDER BY bd.date ASC", nativeQuery = true)
+    List<BookingDetail> findCompletedBookingsBeforeDate(Date date);
 
 }

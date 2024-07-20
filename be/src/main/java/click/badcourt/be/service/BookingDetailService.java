@@ -469,7 +469,7 @@ public class BookingDetailService {
         bookingDetailRepository.save(bookingDetail.get());
     }
     public Map<String, Integer> getBookingsCountByDayOfWeek() {
-        // Use the correct method based on your DB
+
         List<Object[]> results = bookingDetailRepository.countBookingsByDayOfWeek();
         Map<String, Integer> bookingsCountByDayOfWeek = new HashMap<>();
 

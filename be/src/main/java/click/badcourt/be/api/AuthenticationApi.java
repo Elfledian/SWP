@@ -37,7 +37,7 @@ public class AuthenticationApi {
             return ResponseEntity.badRequest().body("Invalid input data");
         }
 
-        String generatedOtp = EmailService.generateOTP(6);
+        String generatedOtp = AuthenticationService.generateOTP(6);
         AuthenticationService.saveOtpHash(registerRequest.getEmail(), AuthenticationService.hashOtp(generatedOtp));
 
         authenticationService.sendOTPEmailConfirmation(registerRequest.getEmail(), generatedOtp);

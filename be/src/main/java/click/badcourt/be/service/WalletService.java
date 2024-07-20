@@ -63,9 +63,11 @@ public class WalletService {
     }
 
 
-   /* public List<TransactionResponseDTO> requestWithDraw() {
+
+
+    public List<TransactionResponseDTO> requestWithDraw() {
         List<TransactionResponseDTO> listTransactionResponseDTO = new ArrayList<>();
-        List<Transaction> transactions = transactionRepository.findByStatus(TransactionEnum.WITHDRAW_PENDING);
+        List<Transaction> transactions = transactionRepository.findByStatus(TransactionEnum.WITHDRAW);
         for (Transaction transaction : transactions) {
             TransactionResponseDTO transactionResponseDTO = new TransactionResponseDTO();
             transactionResponseDTO.setTransactionID(transaction.getTransactionId());
@@ -90,8 +92,8 @@ public class WalletService {
 
     public Transaction acpWithDraw(Long id) {
         Transaction transaction = transactionRepository.findById(id).orElse(null);
-        if (transaction != null && transaction.getStatus() == TransactionEnum.WITHDRAW_PENDING) {
-            transaction.setStatus(TransactionEnum.WITHDRAW_SUCCESS);
+        if (transaction != null && transaction.getStatus() == TransactionEnum.WITHDRAW) {
+            transaction.setStatus(TransactionEnum.WITHDRAW);
             return transactionRepository.save(transaction);
         } else {
             throw new RuntimeException("Transaction not found or not in pending state.");
@@ -100,16 +102,16 @@ public class WalletService {
 
     public Transaction rejectWithDraw(Long id) {
         Transaction transaction = transactionRepository.findById(id).orElse(null);
-        if (transaction != null && transaction.getStatus() == TransactionEnum.WITHDRAW_PENDING) {
+        if (transaction != null && transaction.getStatus() == TransactionEnum.WITHDRAW) {
             Account account = transaction.getFromaccount();
             account.setBalance(account.getBalance() + transaction.getTotalAmount().floatValue());
             authenticationRepository.save(account);
-            transaction.setStatus(TransactionEnum.WITHDRAW_REJECT);
+            transaction.setStatus(TransactionEnum.WITHDRAW);
             return transactionRepository.save(transaction);
         } else {
             throw new RuntimeException("Transaction not found or not in pending state.");
         }
-    }*/
+    }
 
     public String createUrlRecharge(WalletRechargeDTO rechargeRequestDTO) throws NoSuchAlgorithmException, InvalidKeyException, Exception{
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
