@@ -61,6 +61,8 @@ public class BookingService {
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
     @Autowired
     private BookingDetailRepository bookingDetailRepository;
+    @Autowired
+    private TransactionService transactionService;
 
     @Transactional
     @Scheduled(fixedRate = 60000) // Run the method every 60 seconds
@@ -347,21 +349,20 @@ public class BookingService {
         }
         if (refundAmount > 0) {
             Account customerAccount = transactionType.getFromaccount();
-            customerAccount.setBalance(customerAccount.getBalance() + refundAmount);
-
             Account clubOwnerAccount = booking.getClub().getAccount();
+            Account toAccount = authenticationRepository.findById(1L).orElseThrow(() -> new RuntimeException("Account not found"));
+//            customerAccount.setBalance(customerAccount.getBalance() + refundAmount);
+            transactionService.updateBalanceFromToAmount(toAccount, customerAccount, refundAmount);
             float clubOwnerRefund =transactionType.getStatus() == TransactionEnum.FULLY_PAID ?
                     (float) (transactionType.getTotalAmount() * 0.3) :
                     (float) (transactionType.getDepositAmount() * 0.2);
-            clubOwnerAccount.setBalance(clubOwnerAccount.getBalance() + clubOwnerRefund);
-
-            Account toAccount = authenticationRepository.findById(1L).orElseThrow(() -> new RuntimeException("Account not found"));
-            toAccount.setBalance(toAccount.getBalance() - (float)(double)transactionType.getTotalAmount());
-
-            float toAccountRefund = transactionType.getStatus() == TransactionEnum.FULLY_PAID ?
-                    (float)(transactionType.getTotalAmount() * 0.1) :
-                    (float)(transactionType.getDepositAmount() * 0.2);
-            toAccount.setBalance(toAccount.getBalance() + toAccountRefund);
+//            clubOwnerAccount.setBalance(clubOwnerAccount.getBalance() + clubOwnerRefund);
+//            toAccount.setBalance(toAccount.getBalance() - (float)(double)transactionType.getTotalAmount());
+            transactionService.updateBalanceFromToAmount(toAccount, clubOwnerAccount, clubOwnerRefund);
+//            float toAccountRefund = transactionType.getStatus() == TransactionEnum.FULLY_PAID ?
+//                    (float)(transactionType.getTotalAmount() * 0.1) :
+//                    (float)(transactionType.getDepositAmount() * 0.2);
+//            toAccount.setBalance(toAccount.getBalance() + toAccountRefund);
 
             Transaction refundTransaction = new Transaction();
             refundTransaction.setFromaccount(transactionType.getFromaccount());
