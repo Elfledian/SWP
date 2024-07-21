@@ -67,7 +67,7 @@ const QRScanner = () => {
     try {
       const response = await api.get(`/transactions/${bookingId}`);
       const transaction = response.data;
-      if (transaction && (transaction.status === "DEPOSITED" || transaction.status === "FULLY_PAID" || transaction.status === "PERSONAL")) {
+      if (transaction && (transaction?.status === "DEPOSITED" || transaction?.status === "FULLY_PAID" || transaction?.status === "PERSONAL")) {
         setTransactionData(transaction);
       } else {
         setTransactionData(null);
@@ -156,7 +156,7 @@ const QRScanner = () => {
           <div className="card mb-4">
             <div className="card-body">
               <h2 className="card-title">Today's Booking Details</h2>
-              {filteredBookingDetails.length > 0 && (transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID" ||transactionData.status === "PERSONAL") && (
+              {filteredBookingDetails?.length > 0 && (transactionData?.status === "DEPOSITED" || transactionData?.status === "FULLY_PAID" ||transactionData?.status === "PERSONAL") && (
                 <div className="table-responsive">
                   <table className="table table-striped">
                     <thead>
@@ -180,9 +180,9 @@ const QRScanner = () => {
                           <td>{detail.phonenumber}</td>
                           <td>{detail.start_time}</td>
                           <td>{detail.end_time}</td>
-                          <td>{detail.status}</td>
+                          <td>{detail?.status}</td>
                           <td>
-                            {detail.status !== "CHECKED_IN" && (
+                            {detail?.status !== "CHECKED_IN" && (
                               <button
                                 className="btn btn-custom-primary"
                                 onClick={() =>
@@ -232,7 +232,7 @@ const QRScanner = () => {
               {error && <div className="alert alert-danger mt-3">{error}</div>}
             </div>
           </div>
-          {transactionData && (transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID" ||transactionData.status === "PERSONAL") && (
+          {transactionData && (transactionData?.status === "DEPOSITED" || transactionData?.status === "FULLY_PAID" ||transactionData?.status === "PERSONAL") && (
             <div className="card">
               <div className="card-body">
                 <h2 className="card-title">Transaction Details</h2>
@@ -278,11 +278,11 @@ const QRScanner = () => {
                     <input
                       type="text"
                       className="form-control"
-                      value={transactionData.status}
+                      value={transactionData?.status}
                       readOnly
                     />
                   </div>
-                  {transactionData.status === "DEPOSITED" && (
+                  {transactionData?.status === "DEPOSITED" && (
                     <button
                       type="button"
                       className="btn btn-custom-success"

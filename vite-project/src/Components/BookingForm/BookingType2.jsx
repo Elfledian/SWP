@@ -155,21 +155,8 @@ const BookingType2 = (props) => {
   return (
     <div name="bookingType2Form" layout="vertical">
       <div className="row">
-        <div className="col-md-6">
-          <Form.Item
-            name="Date"
-            label="Start Date"
-            rules={[
-              { required: true, message: "Please select the booking date!" },
-            ]}
-          >
-          <DatePicker
-              format="YYYY-MM-DD"
-              onChange={handleDateChange}
-              disabledDate={disabledDate}
-            />
-          </Form.Item>
-        </div>
+
+        
         <div className="col-md-6">
           <Form.Item
             name="month"
@@ -181,6 +168,21 @@ const BookingType2 = (props) => {
               max={12}
               style={{ width: "100%" }}
               onChange={handleMonthChange}
+            />
+          </Form.Item>
+        </div>
+        <div className="col-md-6">
+          <Form.Item
+            name="Date"
+            label="Start Date"
+            rules={[
+              { required: true, message: "Please select the booking date!" },
+            ]}
+          >
+            <DatePicker
+              format="YYYY-MM-DD"
+              onChange={handleDateChange}
+              disabledDate={disabledDate}
             />
           </Form.Item>
         </div>

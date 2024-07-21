@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import BookingDetails from "./BookingDetails"; // Assuming BookingDetails is also redesigned for Ant Design
 import { Card, List, Space, Button, Collapse, message, Popconfirm, Modal } from "antd";
 import QRCode from "qrcode.react"; // Import QRCode from qrcode.react
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../config/axios";
 import moment from "moment";
 
@@ -18,6 +18,7 @@ const BookingHistory = (props) => {
   const isPastBooking = moment(props.bookingCreateTime).isBefore(today);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [checkoutVisible, setCheckoutVisible] = useState(false)
+  const navigate = useNavigate()
 
 
   const showCancelModal = () => {
@@ -87,7 +88,8 @@ const BookingHistory = (props) => {
         // }, 1000);
       }
     } catch (error) {
-      message.error("An unknown error occurred. Please try again later.")
+      message.error("An unknown error occurred. Please check your balance and try again later.")
+      navigate("/profile")
       setError(error.message);
     }
   }
@@ -151,7 +153,7 @@ const BookingHistory = (props) => {
                     !allCheckedIn && (
                       booking.status === "COMPLETED" || booking.status === "DEPOSITED" ? (
                         <Link to={`/UpdateForCustomer/${booking.orderID}/${props.clubId}`}>
-                          <Button type="primary" >
+                          <Button type="primary" disabled={isPastBooking}>
                             Update Booking
                           </Button>
                         </Link>

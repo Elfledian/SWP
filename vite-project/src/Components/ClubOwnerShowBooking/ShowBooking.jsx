@@ -163,10 +163,11 @@ const ShowBooking = (props) => {
                 <Button
                   style={{ cursor: 'pointer' }}
                   onClick={() => showModal(booking)}
-                  disabled={
-                    moment().isAfter(moment(booking.bookingDate).subtract(24, 'hours'))
-                    // || booking.status !== 'NOTYET'
-                  }
+                  // disabled={
+                  //   moment().isAfter(moment(booking.bookingDate).subtract(2, 'hours'))
+                  //   // moment().startOf('hour').isAfter(booking.start_time +1)
+                  //   // || booking.status !== 'NOTYET'
+                  // }
                 >
                   Update
                 </Button>
