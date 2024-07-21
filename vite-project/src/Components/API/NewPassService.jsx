@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const newPass = async (token,password) => {
-  const url = 'http://152.42.168.144:8080/api/reset-password'; 
+  const url = 'http://152.42.168.144:8080/api/setPasswordActiveClub'; 
   const payload = {
     password: password,
   };

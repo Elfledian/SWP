@@ -135,7 +135,8 @@ const BookingForm = ({ children }) => {
           }, 1000);
         }
       } catch (error) {
-        message.error("An unknown error occurred. Please try again later.")
+        navigate("/profile")
+        message.error("An unknown error occurred. Check your balance and try again later.")
         setError(error.message);
       }
   }

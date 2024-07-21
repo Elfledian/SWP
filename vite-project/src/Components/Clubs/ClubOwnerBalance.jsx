@@ -24,20 +24,19 @@ const ClubOwnerBalance = () => {
   }, [accessToken]);
 
   const handleWithdraw = async () => {
-    if (withdrawAmount > 0 && withdrawAmount <= balance && withdrawAmount >= 10000) {
+    if (withdrawAmount > 0 && withdrawAmount >= 10000 && withdrawAmount <= balance) {
       try {
         const response = await api.post(`/pay/withDraw?amount=${withdrawAmount}`);
-        message.success('Withdrawal successful');
-        // Optionally, update the balance after withdrawal if your API returns updated balance
-        // setBalance(response.data.updatedBalance);
+        message.success('Withdraw successful');
+        setBalance(response.data);
         setWithdrawModalVisible(false);
         setWithdrawAmount(0);
       } catch (error) {
         console.error('Error withdrawing:', error);
-        message.error('Withdrawal failed');
+        message.error('Withdraw failed');
       }
     } else {
-      message.error('Invalid withdrawal amount. Withdraw amount must be at least 10K.');
+      message.error('Invalid withdrawal amount. Withdraw amount must be at least 10K and not exceed your current balance.');
     }
   };
 

@@ -68,6 +68,7 @@ const AddClubCombo = () => {
           setUploadImage(null);
           document.getElementById("clear").reset();
           setError("");
+          navigate("/adminDashboard")
         }
 
         // Handle successful
