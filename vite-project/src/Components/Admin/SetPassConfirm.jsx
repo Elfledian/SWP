@@ -25,8 +25,10 @@ const SetPassConfirm = () => {
       try {
         const data = await newPass(token, password);
         // console.log("Reset succesfully", data);
-        message.success("Confirmed. Navigate to login page.")
-        navigate("/login");
+        message.success("Password confirmed. Navigating to login page.")
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
         // Handle valid email (e.g., redirect to confirm pass)
       } catch (err) {
         console.error(err);
