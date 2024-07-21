@@ -2,6 +2,7 @@ package click.badcourt.be.service;
 
 import click.badcourt.be.entity.Account;
 import click.badcourt.be.entity.Booking;
+import click.badcourt.be.entity.Club;
 import click.badcourt.be.entity.Transaction;
 
 import click.badcourt.be.enums.BookingStatusEnum;
@@ -13,6 +14,7 @@ import click.badcourt.be.model.request.WalletRechargeDTO;
 import click.badcourt.be.model.response.TransactionResponseDTO;
 import click.badcourt.be.repository.AuthenticationRepository;
 import click.badcourt.be.repository.BookingRepository;
+import click.badcourt.be.repository.ClubRepository;
 import click.badcourt.be.repository.TransactionRepository;
 import click.badcourt.be.utils.AccountUtils;
 import org.slf4j.Logger;
@@ -44,7 +46,11 @@ public class WalletService {
     TransactionRepository transactionRepository;
     @Autowired
     BookingRepository bookingRepository;
+    @Autowired
+    ClubRepository clubRepository;
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
+    @Autowired
+    private TransactionService transactionService;
 
     public float getBalance(Long accountId) {
         Account account = authenticationRepository.findById(accountId).orElse(null);
@@ -348,6 +354,46 @@ public class WalletService {
 
         logger.info("Background job for transferring funds has completed.");
     }
+    @Transactional
+    @Scheduled(cron = "0 0 0 1 * *") // Run at midnight on the first day of every month
+    public void chargeOfClubPosting() {
+        logger.info("Background job for Club charge is running at {}", new Date());
+        int temp;
+        List<Club> clubs = clubRepository.findClubsByDeletedFalse();
+        Account admin = authenticationRepository.findByRole(RoleEnum.ADMIN);
+        for (Club club : clubs) {
+            if (club.getAccount().getBalance()<200000) {
+                club.setDeleted(true);
+                logger.info("Club {} with ID: {} deleted for not having enough money in account.", club.getName(), club.getClubId());
+            }
+            else {
+                temp = transactionService.updateBalanceFromToAmount(club.getAccount(), admin, 200000);
+                logger.info("Transferred 200000 from club owner {} to admin for monthly fee charge", club.getAccount().getEmail());
+            }
+        }
+        logger.info("Background job for charging fee monthly has completed.");
+    }
+    @Transactional
+    @Scheduled(cron = "0 0 * * * *") // Run every hour
+    public void retakeClub() {
+        logger.info("Background job for Club charge is running at {}", new Date());
+        int temp;
+        List<Club> clubs = clubRepository.findClubsByDeletedTrue();
+        Account admin = authenticationRepository.findByRole(RoleEnum.ADMIN);
+        for (Club club : clubs) {
+            if (club.getAccount().getBalance()>=200000) {
+                club.setDeleted(false);
+                temp = transactionService.updateBalanceFromToAmount(admin, club.getAccount(), 200000);
+                logger.info("Club {} with ID: {} reactivated after charging for retaking club.", club.getName(), club.getClubId());
+            }
+            else {
+                logger.info("Club {} with ID: {} not meet requirement for retaking club, keep club deactivated.", club.getName(), club.getClubId());
+            }
+        }
+        logger.info("Background job for retaking club has completed.");
+    }
+
+
     private double calculateTransferAmount(Booking booking) {
         double transferAmount = 0.0;
 

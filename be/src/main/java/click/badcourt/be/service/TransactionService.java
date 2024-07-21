@@ -215,9 +215,7 @@ public class TransactionService {
         }
     }
 
-    public int updateBalanceFromToAmount(Long fromId, Long toId, double amount) {
-        Account fromAccount = authenticationRepository.findAccountByAccountId(fromId);
-        Account toAccount = authenticationRepository.findAccountByAccountId(toId);
+    public int updateBalanceFromToAmount(Account fromAccount, Account toAccount, double amount) {
         if(fromAccount == null && toAccount == null)
         {
             return 0;
