@@ -328,7 +328,7 @@ public class WalletService {
                     transaction.setToaccount(clubOwner);
                     transaction.setTotalAmount(transferAmount);
                     transaction.setPaymentDate(new Date());
-                    transaction.setStatus(TransactionEnum.FULLY_PAID);
+                    transaction.setStatus(TransactionEnum.TRANSFER);
 
                     transactionRepository.save(transaction);
                     authenticationRepository.save(admin);
