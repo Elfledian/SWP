@@ -19,9 +19,9 @@ public class MomoConfig {
 
     private String apiUrl="https://test-payment.momo.vn";
 
-    private String returnUrl="http://badcourts.click";
+    private String returnUrl="http://badcourts.click/momoTransactions";
 
 
-    private String notifyUrl="http://badcourts.click";
+    private String notifyUrl="http://badcourts.click/momoTransactions";
 
 }

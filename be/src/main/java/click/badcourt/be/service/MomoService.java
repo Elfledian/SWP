@@ -1,7 +1,12 @@
 package click.badcourt.be.service;
 
 import click.badcourt.be.config.MomoConfig;
+import click.badcourt.be.entity.Account;
+import click.badcourt.be.entity.Transaction;
+import click.badcourt.be.enums.TransactionEnum;
 import click.badcourt.be.model.request.RechargeRequestDTO;
+import click.badcourt.be.repository.TransactionRepository;
+import click.badcourt.be.utils.AccountUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.security.InvalidKeyException;
@@ -28,15 +33,17 @@ import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+
 @Service
 public class MomoService {
     @Autowired
     private MomoConfig momoConfig;
-    public String createPaymentUrl(String amount,  String orderInfo, String extraData) throws Exception {
+    @Autowired
+    private AccountUtils accountUtils;
+    @Autowired
+    private TransactionRepository transactionRepository;
+    public String createPaymentUrl(String amount,  String orderInfo, String extraData,RechargeRequestDTO rechargeRequestDTO) throws Exception {
         String partnerCode = momoConfig.getPartnerCode();
         String accessKey = momoConfig.getAccessKey();
         String secretKey = momoConfig.getSecretKey();
@@ -44,7 +51,17 @@ public class MomoService {
         String redirectUrl = momoConfig.getReturnUrl();
         String ipnUrl = momoConfig.getNotifyUrl();
         String requestType = "payWithATM";
-        String orderId="BadCourt"+ AuthenticationService.generateOTP(7);
+        String orderId="BadCourt"+ AuthenticationService.generateOTP(9);
+        Account account = accountUtils.getCurrentAccount();
+
+        Transaction transaction = new Transaction();
+
+        transaction.setPaymentDate(new Date());
+        double totalAmount = Double.parseDouble(rechargeRequestDTO.getAmount());
+        transaction.setTotalAmount(totalAmount);
+        transaction.setToaccount(account);
+        transaction.setStatus(TransactionEnum.PENDING);
+        transactionRepository.save(transaction);
 
         String rawSignature = String.format(
                 "accessKey=%s&amount=%s&extraData=%s&ipnUrl=%s&orderId=%s&orderInfo=%s&partnerCode=%s&redirectUrl=%s&requestId=%s&requestType=%s",
