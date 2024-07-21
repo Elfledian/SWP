@@ -46,14 +46,15 @@ public class WalletApi {
     @Autowired
     private BookingRepository bookingRepository;
     @PostMapping("/withDraw")
-    public ResponseEntity<String> withDraw(@RequestParam double amount) {
+    public ResponseEntity<?> withDraw(@RequestParam double amount) {
         try {
-            Transaction transaction = walletService.withDraw(amount);
-            return ResponseEntity.ok("Withdrawal success.");
+            double balance = walletService.withDraw(amount);
+            return ResponseEntity.ok(balance);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
 
     @GetMapping("/getBalance/{accountId}")
     public ResponseEntity<Float> getBalance(@PathVariable Long accountId) {

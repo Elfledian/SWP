@@ -55,7 +55,7 @@ public class WalletService {
         }
     }
 
-    public Transaction withDraw(double amount) {
+    public double withDraw(double amount) {
         double minWithdrawalAmount = 1000.0;
         if (amount < minWithdrawalAmount) {
             throw new RuntimeException("The minimum withdrawal amount is " + minWithdrawalAmount);
@@ -69,11 +69,13 @@ public class WalletService {
             transaction.setPaymentDate(new Date());
             account.setBalance(account.getBalance() - (float)amount);
             authenticationRepository.save(account);
-            return transactionRepository.save(transaction);
+            transactionRepository.save(transaction);
+            return account.getBalance();
         } else {
             throw new RuntimeException("Insufficient balance in wallet for withdrawal.");
         }
     }
+
 
 
 
