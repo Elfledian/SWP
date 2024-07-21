@@ -20,5 +20,7 @@ public interface BookingRepository extends JpaRepository<Booking,Long> {
     List<Booking> findByStatusAndBookingDateBefore(BookingStatusEnum status, Date date);
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.club.clubId = :clubId AND b.status = :status")
     long countByClubIdAndStatus(@Param("clubId") Long clubId, @Param("status") BookingStatusEnum status);
+    @Query("SELECT b FROM Booking b WHERE b.status = 'COMPLETED'")
+    List<Booking> findCompletedBookings();
 
 }

@@ -1,18 +1,27 @@
 package click.badcourt.be.service;
 
 import click.badcourt.be.entity.Account;
+import click.badcourt.be.entity.Booking;
 import click.badcourt.be.entity.Transaction;
 
+import click.badcourt.be.enums.BookingStatusEnum;
+import click.badcourt.be.enums.RoleEnum;
 import click.badcourt.be.enums.TransactionEnum;
 import click.badcourt.be.model.request.RechargeRequestDTO;
 import click.badcourt.be.model.request.WalletRechargeDTO;
 
 import click.badcourt.be.model.response.TransactionResponseDTO;
 import click.badcourt.be.repository.AuthenticationRepository;
+import click.badcourt.be.repository.BookingRepository;
 import click.badcourt.be.repository.TransactionRepository;
 import click.badcourt.be.utils.AccountUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
@@ -33,6 +42,10 @@ public class WalletService {
     AuthenticationRepository authenticationRepository;
     @Autowired
     TransactionRepository transactionRepository;
+    @Autowired
+    BookingRepository bookingRepository;
+    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
+
     public float getBalance(Long accountId) {
         Account account = authenticationRepository.findById(accountId).orElse(null);
         if (account != null) {
@@ -279,4 +292,84 @@ public class WalletService {
         }
         return result.toString();
     }
+    @Transactional
+    @Scheduled(cron = "0 50 12 * * *") // Run every day at 7 PM
+    public void transferFundsToClubOwners() {
+        logger.info("Background job for transferring funds is running at {}", new Date());
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, -2);
+        Date twoDaysAgo = cal.getTime();
+
+        List<Booking> completedBookings = bookingRepository.findCompletedBookings();
+
+        for (Booking booking : completedBookings) {
+            boolean hasOldBookingDetail = booking.getBookingDetails().stream()
+                    .anyMatch(detail -> detail.getDate().before(twoDaysAgo));
+
+            if (hasOldBookingDetail) {
+                Account clubOwner = booking.getClub().getAccount();
+                Account admin = authenticationRepository.findByRole(RoleEnum.ADMIN);
+
+                if (admin == null) {
+                    logger.error("No admin account found. Cannot proceed with the transfer.");
+                    return;
+                }
+
+                double transferAmount = calculateTransferAmount(booking);
+
+                if (admin.getBalance() >= transferAmount) {
+                    admin.setBalance(admin.getBalance() - (float) transferAmount);
+                    clubOwner.setBalance(clubOwner.getBalance() + (float) transferAmount);
+
+                    Transaction transaction = new Transaction();
+                    transaction.setBooking(booking);
+                    transaction.setFromaccount(admin);
+                    transaction.setToaccount(clubOwner);
+                    transaction.setTotalAmount(transferAmount);
+                    transaction.setPaymentDate(new Date());
+                    transaction.setStatus(TransactionEnum.FULLY_PAID);
+
+                    transactionRepository.save(transaction);
+                    authenticationRepository.save(admin);
+                    authenticationRepository.save(clubOwner);
+
+                    booking.setStatus(BookingStatusEnum.PROCESSED);
+                    bookingRepository.save(booking);
+
+                    logger.info("Transferred {} from admin to club owner {} for booking ID {}", transferAmount, clubOwner.getEmail(), booking.getBookingId());
+                } else {
+                    logger.error("Insufficient balance in admin account for transferring {} to club owner {}", transferAmount, clubOwner.getEmail());
+                }
+            }
+        }
+
+        logger.info("Background job for transferring funds has completed.");
+    }
+    private double calculateTransferAmount(Booking booking) {
+        double transferAmount = 0.0;
+
+        if (booking.getBookingType().getBookingTypeId() == 2 || booking.getBookingType().getBookingTypeId() == 3) {
+            double fullyPaidAmount = booking.getTransaction().stream()
+                    .filter(transaction -> transaction.getStatus() == TransactionEnum.FULLY_PAID)
+                    .mapToDouble(Transaction::getTotalAmount)
+                    .sum();
+            transferAmount += fullyPaidAmount * 0.9;
+        }
+
+        if (booking.getBookingType().getBookingTypeId() == 1) {
+            double depositedAmount = booking.getTransaction().stream()
+                    .filter(transaction -> transaction.getStatus() == TransactionEnum.DEPOSITED)
+                    .mapToDouble(Transaction::getTotalAmount)
+                    .sum();
+            transferAmount += depositedAmount * 0.4;
+        }
+
+        return roundToNearestThousand(transferAmount);
+    }
+    private double roundToNearestThousand(double amount) {
+        return Math.round(amount / 1000.0) * 1000.0;
+    }
+
 }
+
