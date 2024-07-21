@@ -34,7 +34,7 @@ public class BookingDetailApi {
     }
 
     @GetMapping("/qrcheck/{bookingid}")
-    public ResponseEntity getBookingDetailByIdQrCheck(@PathVariable Long bookingid) {
+    public ResponseEntity getBookingDetailByIdQrCheck(@PathVariable Long bookingid) throws Exception {
         return ResponseEntity.ok(bookingDetailService.getBookingDetailByBookingIdQrCheck(bookingid));
     }
 
