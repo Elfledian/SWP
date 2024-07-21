@@ -4,6 +4,7 @@ import click.badcourt.be.entity.*;
 
 import click.badcourt.be.entity.CourtTimeslot;
 import click.badcourt.be.enums.BookingDetailStatusEnum;
+import click.badcourt.be.enums.BookingStatusEnum;
 import click.badcourt.be.model.request.*;
 import click.badcourt.be.model.response.*;
 import click.badcourt.be.repository.*;
@@ -79,8 +80,11 @@ public class BookingDetailService {
         return bookingDetailDeleteResponses;
     }
 
-    public List<BookingDetailResponse> getBookingDetailByBookingIdQrCheck(Long bookingId) {
+    public List<BookingDetailResponse> getBookingDetailByBookingIdQrCheck(Long bookingId) throws Exception {
         Optional<Booking> bookingOptional= bookingRepository.findById(bookingId);
+        if(bookingOptional.isPresent() && bookingOptional.get().getStatus()== BookingStatusEnum.CANCELED){
+            throw new Exception("Invalid Booking ID");
+        }
         Long ownerId= accountUtils.getCurrentAccount().getAccountId();
         if(bookingOptional.isPresent() && Objects.equals(bookingOptional.get().getClub().getAccount().getAccountId(), ownerId)){
             List<BookingDetail> bookingDetails = bookingDetailRepository.findBookingDetailsByBooking_BookingId(bookingId);

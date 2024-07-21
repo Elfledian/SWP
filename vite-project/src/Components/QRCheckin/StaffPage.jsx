@@ -8,15 +8,13 @@ import BookingHistory from "../BookingHistory/BookingHistory";
 
 const QRScanner = () => {
   const [scanResult, setScanResult] = useState("");
-  const [bookingDetails, setBookingDetails] = useState([]);
+  const [bookingDetails, setBookingDetails] = useState(null);
   const [transactionData, setTransactionData] = useState(null);
   const [scannerKey, setScannerKey] = useState(Date.now());
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const lastScannedCodeRef = useRef(null);
-  const token =
-    "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJvd25lciIsImlhdCI6MTcxOTkwMzIxOSwiZXhwIjoxNzE5OTg5NjE5fQ.KqKKMSA-ayJrNIL3_HN4qRWRtvEokK0KERoC36o7G3hDxRCEyVESOYe_W8ELU2zB"; // Store the token in environment variables
 
   const handleError = (error) => {
     console.error("QR Scanner Error:", error);
@@ -52,11 +50,9 @@ const QRScanner = () => {
     setError(null);
     try {
       console.log(`Fetching booking details for ID: ${bookingId}`);
-      const response = await api.get(
-        `/bookingDetail/qrcheck/${bookingId}`
-      );
+      const response = await api.get(`/bookingDetail/qrcheck/${bookingId}`);
       console.log("Booking Details Response:", response.data);
-      setBookingDetails(response.data);
+      setBookingDetails(response.data.length > 0 ? response.data : null);
     } catch (error) {
       console.error("Error fetching booking details:", error);
       setError("Error fetching booking details.");
@@ -69,10 +65,8 @@ const QRScanner = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get(
-        `/transactions/${bookingId}`
-      );
-      setTransactionData(response.data);
+      const response = await api.get(`/transactions/${bookingId}`);
+      setTransactionData(response.data || null);
     } catch (error) {
       console.error("Error fetching transaction data:", error);
       setError("Error fetching transaction data.");
@@ -85,16 +79,11 @@ const QRScanner = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.put(
-        `/transactions/${id}`,
-        {},
-        {
-          headers: {
-            // Authorization: `Bearer ${token}`,
-            Accept: "*/*",
-          },
-        }
-      );
+      const response = await api.put(`/transactions/${id}`, {}, {
+        headers: {
+          Accept: "*/*",
+        },
+      });
       console.log("Update Transaction Status Response:", response.data);
       setTransactionData((prevData) => ({
         ...prevData,
@@ -112,15 +101,7 @@ const QRScanner = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.put(
-        `/bookingDetail/checkin/${bookingDetailsId}`,
-        {}
-        // {
-        //   headers: {
-        //     Authorization: `Bearer ${token}`
-        //   }
-        // }
-      );
+      const response = await api.put(`/bookingDetail/checkin/${bookingDetailsId}`, {});
       console.log("Check-In Response:", response.data);
       setBookingDetails((prevDetails) =>
         prevDetails.map((detail) =>
@@ -151,21 +132,17 @@ const QRScanner = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const filteredBookingDetails = Array.isArray(bookingDetails)
-    ? bookingDetails.filter(
-      (detail) => formatDate(detail.bookingDate) === today
-    )
+    ? bookingDetails.filter((detail) => formatDate(detail.bookingDate) === today)
     : [];
 
   const refreshScanner = () => {
     setScannerKey(Date.now());
     setScanResult("");
-    setBookingDetails([]);
+    setBookingDetails(null);
     setTransactionData(null);
     setError(null);
     lastScannedCodeRef.current = null;
   };
-
-  
 
   return (
     <div className="container mt-5">
@@ -242,7 +219,7 @@ const QRScanner = () => {
                 Refresh Scanner
               </button>
               {scanResult && filteredBookingDetails.length === 0 && (
-                <div className="alert alert-warning mt-3">Invalid booking</div>
+                <div className="alert alert-warning mt-3">No booking available found</div>
               )}
               {loading && (
                 <div className="loading-overlay">
@@ -254,7 +231,7 @@ const QRScanner = () => {
               {error && <div className="alert alert-danger mt-3">{error}</div>}
             </div>
           </div>
-          {transactionData && (
+          {transactionData ? (
             <div className="card">
               <div className="card-body">
                 <h2 className="card-title">Transaction Details</h2>
@@ -318,10 +295,11 @@ const QRScanner = () => {
                 </form>
               </div>
             </div>
+          ) : (
+            <div className="alert alert-warning mt-3">No transaction found</div>
           )}
         </div>
       </div>
-
     </div>
   );
 };
