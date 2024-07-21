@@ -97,7 +97,12 @@ public class BookingService {
             store = bookingDetailService.create3rdBookingDetailCombo(bkdtr, id);
             returnlist.add(store);
         }
-
+        Transaction transaction = new Transaction();
+        transaction.setTotalAmount(booking.get().getClub().getPrice()*bookingDetailResponseList.size());
+        transaction.setBooking(booking.get());
+        transaction.setStatus(TransactionEnum.PERSONAL);
+        transaction.setPaymentDate(new Date());
+        transactionRepository.save(transaction);
         QRCodeData qrCodeData = new QRCodeData();
         qrCodeData.setBookingId(booking.get().getBookingId());
         sendBookingConfirmation(qrCodeData, bookingComboRequest.getEmail());
