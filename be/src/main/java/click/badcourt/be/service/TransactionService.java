@@ -84,10 +84,10 @@ public class TransactionService {
         return transactionResponses;
     }
     public List<TransactionUnderTopUpResponse> findAllByFromAccountId(Long accountId) {
-        List<Transaction> transactions = transactionRepository.findAllByFromaccount_AccountId(accountId);
+        List<Transaction> transactions = transactionRepository.findAllByFromaccount_AccountIdOrToaccount_AccountId(accountId, accountId);
         List<TransactionUnderTopUpResponse> transactionResponses = new ArrayList<>();
         for (Transaction transaction : transactions) {
-            if (transaction.getStatus() == TransactionEnum.FULLY_PAID || transaction.getStatus() == TransactionEnum.REFUND) {
+            if (transaction.getStatus() == TransactionEnum.FULLY_PAID || transaction.getStatus() == TransactionEnum.REFUND || transaction.getStatus() == TransactionEnum.DEPOSITED) {
                 TransactionUnderTopUpResponse transactionResponse = new TransactionUnderTopUpResponse();
                 transactionResponse.setTransactionid(transaction.getTransactionId());
                 transactionResponse.setTransactiondate(transaction.getPaymentDate());

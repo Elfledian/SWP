@@ -370,8 +370,8 @@ public class BookingService {
 //            toAccount.setBalance(toAccount.getBalance() + toAccountRefund);
 
             Transaction refundTransaction = new Transaction();
-            refundTransaction.setFromaccount(transactionType.getFromaccount());
-            refundTransaction.setToaccount(transactionType.getToaccount());
+            refundTransaction.setFromaccount(transactionType.getToaccount());
+            refundTransaction.setToaccount(transactionType.getFromaccount());
             refundTransaction.setTotalAmount(Double.valueOf(refundAmount));
             refundTransaction.setBooking(transactionType.getBooking());
             refundTransaction.setStatus(TransactionEnum.REFUND);

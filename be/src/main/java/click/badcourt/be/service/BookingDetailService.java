@@ -291,14 +291,14 @@ public class BookingDetailService {
 
         for (LocalDate date : bookingDates) {
 
-            boolean isAvailable = existingBookings.stream()
-                    .noneMatch(bookingdt ->
-                            bookingdt.getDate().compareTo(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())) == 0 &&
-                                    bookingdt.getCourtTimeslot().getCourtTSlotID() == request.getCourtTSId());
-
-            if (!isAvailable) {
-                throw new IllegalArgumentException("CourtTimeslot are already in use");
-            }
+//            boolean isAvailable = existingBookings.stream()
+//                    .noneMatch(bookingdt ->
+//                            bookingdt.getDate().compareTo(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())) == 0 &&
+//                                    bookingdt.getCourtTimeslot().getCourtTSlotID() == request.getCourtTSId());
+//
+//            if (!isAvailable) {
+//                throw new IllegalArgumentException("CourtTimeslot are already in use");
+//            }
 
 
             BookingDetail bookingDetail = new BookingDetail();
