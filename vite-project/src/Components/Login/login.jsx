@@ -41,7 +41,6 @@
 //     const handleLogin1 = async (e) => {
 //         e.preventDefault();
 
-
 //         if (email.trim() === '' || password.trim() === '') {
 //             setError('Please enter both phone number and password');
 //         }
@@ -174,6 +173,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../API/LoginService";
 import Divider from "@mui/material/Divider";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 // import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 <script src="https://accounts.google.com/gsi/client" async></script>;
@@ -186,6 +186,7 @@ import axios from "axios";
 import GoogleButton from "react-google-button";
 import { useAuth } from "./AuthProvider";
 import { Chip } from "@mui/material";
+import { Button } from "antd";
 const Login = () => {
   const [visible, setVisible] = useState("");
   const [email, setEmail] = useState("");
@@ -260,7 +261,7 @@ const Login = () => {
       const newToken = newTokenData.token;
       localStorage.setItem("token", newToken);
       const ggData = res.data;
-      console.log(ggData)
+      console.log(ggData);
       const roleGG = ggData.role;
       localStorage.setItem("userRole", roleGG);
       const userEmail = ggData.email;
@@ -278,6 +279,11 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
+        <Link to={`/`}>
+          <Button type="text">
+            <ArrowLeftOutlined /> Back
+          </Button>
+        </Link>
         <h2 className="login-title">Login</h2>
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleLogin1} className="login-form">
