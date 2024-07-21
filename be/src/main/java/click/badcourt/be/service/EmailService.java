@@ -178,5 +178,47 @@ public class EmailService {
 
         logger.info("Sent email reminder to: {}", account.getEmail());
     }
+    public void sendEmailDeleteReminder(Club club) throws MessagingException, IOException {
+        Account account = club.getAccount();
 
+        String subject = "Reminder: Your Club now is disabled.";
+        StringBuilder message = new StringBuilder(String.format("Dear %s,\n\nThis is a reminder for your Club circumstance. Please check your account balance, make sure to have at least 200,000 Vnd to reactive your club\n\n", account.getFullName()));
+
+
+        message.append("Thank you,\nBadcourts Team");
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+        helper.setTo(account.getEmail());
+        helper.setSubject(subject);
+        helper.setText(message.toString());
+
+        javaMailSender.send(mimeMessage);
+
+
+        logger.info("Sent email reminder to: {}", account.getEmail());
+    }
+
+    public void sendEmailFeeChargeAnnounce(Club club, Float oldMoney) throws MessagingException, IOException {
+        Account account = club.getAccount();
+
+        String subject = "Congratulation: Your Club is now charged successfully!";
+        StringBuilder message = new StringBuilder(String.format("Dear %s,\n\nThis is a reminder for your Club circumstance. Your Club has been charged successfully to keep active. \nRemember to keep your balance at least 200,000 Vnd at the first date of the month.\n\nYour balance before Fee charging: %f\n\nYour balance after Fee charging: %f", account.getFullName(), oldMoney, account.getBalance()));
+
+
+        message.append("Thank you,\nBadcourts Team");
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+        helper.setTo(account.getEmail());
+        helper.setSubject(subject);
+        helper.setText(message.toString());
+
+        javaMailSender.send(mimeMessage);
+
+
+        logger.info("Sent email reminder to: {}", account.getEmail());
+    }
 }

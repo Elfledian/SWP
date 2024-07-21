@@ -17,6 +17,7 @@ import click.badcourt.be.repository.BookingRepository;
 import click.badcourt.be.repository.ClubRepository;
 import click.badcourt.be.repository.TransactionRepository;
 import click.badcourt.be.utils.AccountUtils;
+import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -51,6 +53,8 @@ public class WalletService {
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
     @Autowired
     private TransactionService transactionService;
+    @Autowired
+    private EmailService emailService;
 
     public float getBalance(Long accountId) {
         Account account = authenticationRepository.findById(accountId).orElse(null);
@@ -356,7 +360,7 @@ public class WalletService {
     }
     @Transactional
     @Scheduled(cron = "0 0 0 1 * *") // Run at midnight on the first day of every month
-    public void chargeOfClubPosting() {
+    public void chargeOfClubPosting() throws MessagingException, IOException {
         logger.info("Background job for Club charge is running at {}", new Date());
         int temp;
         List<Club> clubs = clubRepository.findClubsByDeletedFalse();
@@ -364,10 +368,13 @@ public class WalletService {
         for (Club club : clubs) {
             if (club.getAccount().getBalance()<200000) {
                 club.setDeleted(true);
+                emailService.sendEmailDeleteReminder(club);
                 logger.info("Club {} with ID: {} deleted for not having enough money in account.", club.getName(), club.getClubId());
             }
             else {
+                Float oldMoney = (float) club.getAccount().getBalance();
                 temp = transactionService.updateBalanceFromToAmount(club.getAccount(), admin, 200000);
+                emailService.sendEmailFeeChargeAnnounce(club, oldMoney);
                 logger.info("Transferred 200000 from club owner {} to admin for monthly fee charge", club.getAccount().getEmail());
             }
         }
@@ -375,7 +382,7 @@ public class WalletService {
     }
     @Transactional
     @Scheduled(cron = "0 0 * * * *") // Run every hour
-    public void retakeClub() {
+    public void retakeClub() throws MessagingException, IOException {
         logger.info("Background job for Club charge is running at {}", new Date());
         int temp;
         List<Club> clubs = clubRepository.findClubsByDeletedTrue();
@@ -383,7 +390,9 @@ public class WalletService {
         for (Club club : clubs) {
             if (club.getAccount().getBalance()>=200000) {
                 club.setDeleted(false);
+                Float oldMoney = (float) club.getAccount().getBalance();
                 temp = transactionService.updateBalanceFromToAmount(admin, club.getAccount(), 200000);
+                emailService.sendEmailFeeChargeAnnounce(club, oldMoney);
                 logger.info("Club {} with ID: {} reactivated after charging for retaking club.", club.getName(), club.getClubId());
             }
             else {
