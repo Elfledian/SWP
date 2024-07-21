@@ -104,12 +104,9 @@ public class WalletApi {
         return ResponseEntity.ok(url);
     }
     @PostMapping("/momo")
-    public ResponseEntity<String> createPayment(@RequestBody PaymentRequest paymentRequest, @RequestBody RechargeRequestDTO rechargeRequestDTO) {
+    public ResponseEntity<String> createPayment(@RequestBody RechargeRequestDTO rechargeRequestDTO) {
         try {
-            String paymentUrl = momoPaymentService.createPaymentUrl(
-                    paymentRequest.getAmount(),
-                    paymentRequest.getExtraData(), rechargeRequestDTO
-            );
+            String paymentUrl = momoPaymentService.createPaymentUrl( rechargeRequestDTO);
             return ResponseEntity.ok(paymentUrl);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(e.getMessage());

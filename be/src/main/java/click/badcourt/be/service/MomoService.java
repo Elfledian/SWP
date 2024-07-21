@@ -43,7 +43,7 @@ public class MomoService {
     private AccountUtils accountUtils;
     @Autowired
     private TransactionRepository transactionRepository;
-    public String createPaymentUrl(String amount,  String extraData,RechargeRequestDTO rechargeRequestDTO) throws Exception {
+    public String createPaymentUrl(RechargeRequestDTO rechargeRequestDTO) throws Exception {
         String partnerCode = momoConfig.getPartnerCode();
         String accessKey = momoConfig.getAccessKey();
         String secretKey = momoConfig.getSecretKey();
@@ -65,7 +65,7 @@ public class MomoService {
 
         String rawSignature = String.format(
                 "accessKey=%s&amount=%s&extraData=%s&ipnUrl=%s&orderId=%s&orderInfo=%s&partnerCode=%s&redirectUrl=%s&requestId=%s&requestType=%s",
-                accessKey, amount,  extraData, ipnUrl, orderId, savedTransaction.getTransactionId(), partnerCode, redirectUrl, requestId, requestType
+                accessKey, rechargeRequestDTO.getAmount(),  rechargeRequestDTO.getBookingId(), ipnUrl, orderId, savedTransaction.getTransactionId(), partnerCode, redirectUrl, requestId, requestType
         );
 
         String signature = generateHMAC(secretKey, rawSignature);
@@ -74,12 +74,12 @@ public class MomoService {
         requestBody.put("partnerCode", partnerCode);
         requestBody.put("accessKey", accessKey);
         requestBody.put("requestId", requestId);
-        requestBody.put("amount", amount);
+        requestBody.put("amount", rechargeRequestDTO.getAmount());
         requestBody.put("orderId", orderId);
         requestBody.put("orderInfo", savedTransaction.getTransactionId().toString());
         requestBody.put("redirectUrl", redirectUrl);
         requestBody.put("ipnUrl", ipnUrl);
-        requestBody.put("extraData", extraData);
+        requestBody.put("extraData", rechargeRequestDTO.getBookingId().toString());
         requestBody.put("requestType", requestType);
         requestBody.put("signature", signature);
         requestBody.put("lang", "en");
