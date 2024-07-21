@@ -66,7 +66,12 @@ const QRScanner = () => {
     setError(null);
     try {
       const response = await api.get(`/transactions/${bookingId}`);
-      setTransactionData(response.data || null);
+      const transaction = response.data;
+      if (transaction && (transaction.status === "DEPOSITED" || transaction.status === "FULLY_PAID")) {
+        setTransactionData(transaction);
+      } else {
+        setTransactionData(null);
+      }
     } catch (error) {
       console.error("Error fetching transaction data:", error);
       setError("Error fetching transaction data.");
@@ -151,7 +156,7 @@ const QRScanner = () => {
           <div className="card mb-4">
             <div className="card-body">
               <h2 className="card-title">Today's Booking Details</h2>
-              {filteredBookingDetails.length > 0 ? (
+              {filteredBookingDetails.length > 0 && (
                 <div className="table-responsive">
                   <table className="table table-striped">
                     <thead>
@@ -193,10 +198,6 @@ const QRScanner = () => {
                     </tbody>
                   </table>
                 </div>
-              ) : (
-                <div className="alert alert-info">
-                  No bookings found for today.
-                </div>
               )}
             </div>
           </div>
@@ -219,7 +220,7 @@ const QRScanner = () => {
                 Refresh Scanner
               </button>
               {scanResult && filteredBookingDetails.length === 0 && (
-                <div className="alert alert-warning mt-3">No booking available found</div>
+                <div className="alert alert-warning mt-3">No booking found for today</div>
               )}
               {loading && (
                 <div className="loading-overlay">
@@ -231,7 +232,7 @@ const QRScanner = () => {
               {error && <div className="alert alert-danger mt-3">{error}</div>}
             </div>
           </div>
-          {transactionData ? (
+          {transactionData && (transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID") && (
             <div className="card">
               <div className="card-body">
                 <h2 className="card-title">Transaction Details</h2>
@@ -295,8 +296,6 @@ const QRScanner = () => {
                 </form>
               </div>
             </div>
-          ) : (
-            <div className="alert alert-warning mt-3">No transaction found</div>
           )}
         </div>
       </div>
