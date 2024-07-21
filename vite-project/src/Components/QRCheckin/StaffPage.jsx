@@ -67,7 +67,7 @@ const QRScanner = () => {
     try {
       const response = await api.get(`/transactions/${bookingId}`);
       const transaction = response.data;
-      if (transaction && (transaction.status === "DEPOSITED" || transaction.status === "FULLY_PAID")) {
+      if (transaction && (transaction.status === "DEPOSITED" || transaction.status === "FULLY_PAID" || transaction.status === "PERSONAL")) {
         setTransactionData(transaction);
       } else {
         setTransactionData(null);
@@ -156,7 +156,7 @@ const QRScanner = () => {
           <div className="card mb-4">
             <div className="card-body">
               <h2 className="card-title">Today's Booking Details</h2>
-              {filteredBookingDetails.length > 0 &&(transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID" ||transactionData.status === "PERSONAL")&& (
+              {filteredBookingDetails.length > 0 && (transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID" ||transactionData.status === "PERSONAL") && (
                 <div className="table-responsive">
                   <table className="table table-striped">
                     <thead>
