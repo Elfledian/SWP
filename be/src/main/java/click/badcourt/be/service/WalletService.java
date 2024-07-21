@@ -374,6 +374,14 @@ public class WalletService {
             else {
                 Float oldMoney = (float) club.getAccount().getBalance();
                 temp = transactionService.updateBalanceFromToAmount(club.getAccount(), admin, 200000);
+                Transaction transaction = new Transaction();
+                transaction.setBooking(null);
+                transaction.setStatus(TransactionEnum.MONTHLY);
+                transaction.setFromaccount(club.getAccount());
+                transaction.setToaccount(admin);
+                transaction.setPaymentDate(new Date());
+                transaction.setTotalAmount(200000.0);
+                transactionRepository.save(transaction);
                 emailService.sendEmailFeeChargeAnnounce(club, oldMoney);
                 logger.info("Transferred 200000 from club owner {} to admin for monthly fee charge", club.getAccount().getEmail());
             }
@@ -392,6 +400,14 @@ public class WalletService {
                 club.setDeleted(false);
                 Float oldMoney = (float) club.getAccount().getBalance();
                 temp = transactionService.updateBalanceFromToAmount(admin, club.getAccount(), 200000);
+                Transaction transaction = new Transaction();
+                transaction.setBooking(null);
+                transaction.setStatus(TransactionEnum.MONTHLY);
+                transaction.setFromaccount(club.getAccount());
+                transaction.setToaccount(admin);
+                transaction.setPaymentDate(new Date());
+                transaction.setTotalAmount(200000.0);
+                transactionRepository.save(transaction);
                 emailService.sendEmailFeeChargeAnnounce(club, oldMoney);
                 logger.info("Club {} with ID: {} reactivated after charging for retaking club.", club.getName(), club.getClubId());
             }
