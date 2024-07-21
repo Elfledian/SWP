@@ -156,7 +156,7 @@ const QRScanner = () => {
           <div className="card mb-4">
             <div className="card-body">
               <h2 className="card-title">Today's Booking Details</h2>
-              {filteredBookingDetails.length > 0 && (
+              {filteredBookingDetails.length > 0 &&(transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID" ||transactionData.status === "PERSONAL")&& (
                 <div className="table-responsive">
                   <table className="table table-striped">
                     <thead>
@@ -232,7 +232,7 @@ const QRScanner = () => {
               {error && <div className="alert alert-danger mt-3">{error}</div>}
             </div>
           </div>
-          {transactionData && (transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID") && (
+          {transactionData && (transactionData.status === "DEPOSITED" || transactionData.status === "FULLY_PAID" ||transactionData.status === "PERSONAL") && (
             <div className="card">
               <div className="card-body">
                 <h2 className="card-title">Transaction Details</h2>
