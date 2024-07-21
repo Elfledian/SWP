@@ -4,9 +4,9 @@ import api from '../../config/axios';
 
 const { Title, Text } = Typography;
 
-const Transfer = () => {
-  const logoUrl = "https://firebasestorage.googleapis.com/v0/b/projectswp-9019a.appspot.com/o/vnpay-logo.jpg?alt=media&token=52ef0034-ac31-4135-8ee9-b07399dc4677";
-  const title = "VNPay";
+const MomoTransfer = () => {
+  const logoUrl = "https://firebasestorage.googleapis.com/v0/b/projectswp-9019a.appspot.com/o/unnamed.jpg?alt=media&token=7f3367e3-aa33-42dd-90b1-a86801705ad2";
+  const title = "Momo";
   const description = "";
   const [buttonStatus, setButtonStatus] = useState(true);
   const [rechargeAmount, setRechargeAmount] = useState('');
@@ -18,7 +18,8 @@ const Transfer = () => {
 
   const handleRecharge = async () => {
     try {
-      const res = await api.post('pay/request-recharge-vnpay', {
+      const res = await api.post('pay/momo', {
+        bookingId: 0,
         amount: rechargeAmount
       });
       const paymentURL = res.data;
@@ -80,4 +81,4 @@ const Transfer = () => {
   );
 };
 
-export default Transfer;
+export default MomoTransfer;

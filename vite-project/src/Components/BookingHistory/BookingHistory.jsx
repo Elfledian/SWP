@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import BookingDetails from "./BookingDetails"; // Assuming BookingDetails is also redesigned for Ant Design
-import { Card, List, Space, Button, Collapse, message, Popconfirm } from "antd";
+import { Card, List, Space, Button, Collapse, message, Popconfirm, Modal } from "antd";
 import QRCode from "qrcode.react"; // Import QRCode from qrcode.react
 import { Link } from "react-router-dom";
 import api from "../../config/axios";
@@ -12,10 +12,21 @@ const BookingHistory = (props) => {
   const isLoggedIn = localStorage.getItem("token")
   const [showBookingDetail, updateShowBookingDetail] = useState(false);
   const today = moment();
+  const [bookingDetail, setBookingDetail] = useState([]);
+  const [allCheckedIn, setAllCheckedIn] = useState(false);
 
   const isPastBooking = moment(props.bookingCreateTime).isBefore(today);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [checkoutVisible, setCheckoutVisible] = useState(false)
 
-  console.log(props.transactionStatus)
+
+  const showCancelModal = () => {
+    setCancelModalVisible(true);
+  };
+
+  const showCheckoutModal = () => {
+    setCheckoutVisible(true);
+  }
 
   const displayDetail = () => {
     showBookingDetail == false
@@ -29,33 +40,83 @@ const BookingHistory = (props) => {
 
 
   useEffect(() => {
-    const fetchTransactionData = async () => {
+    const fetchBookingDetail = async () => {
       try {
-        const response = await api.get(
-          `/transactions/${props.orderID}`
-        );
-        setTransactionData(response.data);
+        const response = await api.get(`/bookingDetail/${props.orderID}`);
+        setBookingDetail(response.data);
+        console.log(response.data)
+
+        // Check if all booking details are checked in
+        const allCheckedIn = response.data.every(detail => detail.status === 'CHECKEDIN');
+        setAllCheckedIn(allCheckedIn);
       } catch (error) {
-        console.error("Error fetching transaction data:", error);
+        console.error('Failed to fetch booking detail:', error);
       }
     };
-    fetchTransactionData();
-  }, [])
+
+    fetchBookingDetail();
+  }, [props.orderID]);
+
+
 
 
   const handleCancelBooking = async (bookingId) => {
     try {
       const res = await api.delete(`/booking/${bookingId}`);
       console.log(res);
-      message.success("Booking cancelled successfully!");
-      // Refresh booking data (without full page reload)
+      message.success("Booking canceled successfully!");
+      // Refresh booking data 
       props.reFetch()
+      setCancelModalVisible(false);
     } catch (error) {
       message.error("An unknown error occurred, please try again.");
       console.error(error);
     }
   }
 
+  const handlePayament = async (bookingId) => {
+    try {
+      const paymentResponse = await api.post(`/transactions/booking-with-wallet/${bookingId}`)
+      console.log(paymentResponse.data)
+      if (paymentResponse) {
+        message.success("Booking success!")
+        props.reFetch()
+        setCheckoutVisible(false);
+        // setTimeout(() => {
+        //   navigate('/');
+        // }, 1000);
+      }
+    } catch (error) {
+      message.error("An unknown error occurred. Please try again later.")
+      setError(error.message);
+    }
+  }
+
+  const handleCancelModalClose = () => {
+    setCancelModalVisible(false);
+  };
+
+  const handleCheckoutModalClose = () => {
+    setCheckoutVisible(false);
+  };
+
+
+  const cancelModalContent = (
+    <div>
+      {props.status === "PENDING" ? (
+        <p>Please confirm. Do you really want to cancel this booking?</p>
+      ) : (
+        <p>Please confirm: You will receive a refund amount of the booking fee if you cancel. Is this correct?</p>
+      )}
+    </div>
+  );
+
+
+  const checkoutModalContent = (
+    <div>
+      <p>Are you sure to check out this booking?</p>
+    </div>
+  );
   const qrCodeValue = JSON.stringify({ bookingId: props.orderID });
 
   return (
@@ -67,12 +128,12 @@ const BookingHistory = (props) => {
             style={{
               margin: "16px 24px",
               padding: "16px",
-              backgroundColor: "#f5f5f5", // Light grey background
+              backgroundColor: "#f5f5f5",
             }}
           >
             <List
               itemLayout="horizontal"
-              dataSource={[props]} // Assuming data is passed as a single object
+              dataSource={[props]}
               renderItem={(booking) => (
                 <List.Item
                   actions={[
@@ -86,21 +147,56 @@ const BookingHistory = (props) => {
                         </Button>
                       </Link>
                     ),
-                    booking.status === "COMPLETED" || booking.status === "DEPOSITED" ? (
-                      <Link to={`/UpdateForCustomer/${booking.orderID}/${props.clubId}`}>
-                        <Button type="primary" disabled={isPastBooking} >
-                          Update Booking
-                        </Button>
-                      </Link>
+
+                    !allCheckedIn && (
+                      booking.status === "COMPLETED" || booking.status === "DEPOSITED" ? (
+                        <Link to={`/UpdateForCustomer/${booking.orderID}/${props.clubId}`}>
+                          <Button type="primary" >
+                            Update Booking
+                          </Button>
+                        </Link>
+                      ) : null
+                    )
+                    ,
+
+                    booking.status === "PENDING" ? (
+
+                      <Button type="primary" onClick={showCheckoutModal} >
+                        Checkout
+                      </Button>
+
                     ) : null,
 
-                    // booking.status === "COMPLETED" || booking.status === "PENDING" ? (
-                    //   <Popconfirm title="You will not get refund if you cancel. Confirm?" disabled={isPastBooking} onConfirm={() => handleCancelBooking(booking.orderID)}>
-                    //     <Button type="primary" danger disabled={isPastBooking}>
-                    //       Cancel Booking
-                    //     </Button>
-                    //   </Popconfirm>
-                    // ) : null,
+                    !allCheckedIn && (
+                      booking.status === "COMPLETED" || booking.status === "PENDING" ? (
+
+                        <Button type="primary" danger onClick={showCancelModal} disabled={isPastBooking}>
+                          Cancel Booking
+                        </Button>
+
+                      ) : null
+
+                    ), <Modal
+                      title="Cancel Booking"
+                      visible={cancelModalVisible}
+                      onOk={() => handleCancelBooking(booking.orderID)}
+                      onCancel={handleCancelModalClose}
+                      okText="Confirm"
+                      cancelText="Cancel"
+                    >
+                      {cancelModalContent}
+                    </Modal>
+                    ,
+                    <Modal
+                      title="Checkout"
+                      visible={checkoutVisible}
+                      onOk={() => handlePayament(booking.orderID)}
+                      onCancel={handleCheckoutModalClose}
+                      okText="Confirm"
+                      cancelText="Cancel"
+                    >
+                      {checkoutModalContent}
+                    </Modal>
                   ]}
                 >
                   <List.Item.Meta
@@ -118,7 +214,7 @@ const BookingHistory = (props) => {
                             { year: "numeric", month: "2-digit", day: "2-digit" }
                           )}
                         </p>
-                        {/* Display QR Code */}
+
                         <div style={{ textAlign: "left" }}>
                           <QRCode value={qrCodeValue} />
                         </div>
@@ -151,3 +247,4 @@ const BookingHistory = (props) => {
 };
 
 export default BookingHistory;
+

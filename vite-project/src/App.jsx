@@ -43,6 +43,7 @@ import ShowBookingsOfAClub from "./Components/Clubs/ShowBookingsOfAClub";
 import RevenueChart from './Components/Clubs/RevenueChart';
 import SetPassConfirm from './Components/Admin/SetPassConfirm'
 import Error404 from './Components/common/Error404'
+import MomoTransaction from './Components/Payment/MomoTransaction'
 
 
 function App() {
@@ -86,7 +87,7 @@ function App() {
               path="/signup"
               element={<SignUp />}
             />
-             <Route
+            <Route
               path="/error404"
               element={<Error404 />}
             />
@@ -144,6 +145,11 @@ function App() {
             <Route
               path='/transactions'
               element={<Transaction />}
+            />
+
+            <Route
+              path='/momoTransactions'
+              element={<MomoTransaction />}
             />
 
             <Route

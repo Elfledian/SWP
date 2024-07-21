@@ -37,14 +37,13 @@ const Club = () => {
   const { clubName } = useParams()
 
   const userRole = localStorage.getItem("userRole");
-  console.log(clubName)
 
 
   useEffect(() => {
     if (userRole === "CLUB_OWNER") {
       navigate('/error404');
     }
-    else if (userRole === "ADMIN"){
+    else if (userRole === "ADMIN") {
       navigate('/adminDashboard')
     }
   }, [userRole, navigate]);
@@ -103,11 +102,11 @@ const Club = () => {
           </Space>
         }
       />
-        <Link to={`/booking/${club.clubId}`}>
-          <Button type="primary" size="small">
-            Book Now
-          </Button>
-        </Link>
+      <Link to={`/booking/${club.clubId}`}>
+        <Button type="primary" size="small">
+          Book Now
+        </Button>
+      </Link>
     </List.Item>
   );
 
@@ -120,72 +119,55 @@ const Club = () => {
   };
 
   const filteredClubs = clubs.filter((club) => {
-    if (searchType === "searchName") {
-      return club.name.toLowerCase().includes(search);
-    } else if (searchType === "searchStartTime") {
-      return club.open_time.toLowerCase().includes(search);
-    } else if (searchType === "searchAddress") {
-      return club.address.toLowerCase().includes(search);
+    if (clubName) {
+      return club.name.toLowerCase().includes(clubName);
     }
-    return false;
+    else {
+      return club;
+    }
   });
 
   return (
     <>
-   
-        <div>
-          <SearchNavBar />
-          <div className="container" style={{ marginTop: 100 }}>
-            <Space direction="vertical" size="middle">
-              <Space.Compact>
-                <Select
-                  defaultValue="searchName"
-                  style={{ height: 39.9 }}
-                  options={options}
-                  onChange={handleSearchTypeChange}
-                />
-                <Input
-                  placeholder="Enter text to search"
-                  onChange={handleSearchChange}
-                  style={{ maxWidth: 400 }}
-                />
-              </Space.Compact>
-            </Space>
-            {filteredClubs.length > 0 ? (
-              <List
-                itemLayout="horizontal"
-                dataSource={filteredClubs}
-                renderItem={renderClubList}
-                pagination={{ pageSize: 4 }}
-              />
-            ) : (
-              <Empty description="No clubs found." />
-            )}
-          </div>
-          <Footer />
-          <Modal
-            title="Feedbacks"
-            open={showModal}
-            onCancel={() => setShowModal(false)}
-            footer={[
-              <Button key="close" onClick={() => setShowModal(false)}>
-                Close
-              </Button>,
-            ]}
-          >
-            {feedbacks.length > 0 ? (
-              feedbacks.map((feedback, index) => (
-                <Card key={index} style={{ marginBottom: 10 }}>
-                  <Typography.Text>{feedback.feedbackContent}</Typography.Text>
-                  <br />
-                  <Rate value={feedback.feedbackRating} disabled />
-                </Card>
-              ))
-            ) : (
-              <Empty description="No feedbacks found." />
-            )}
-          </Modal>
+
+      <div>
+        <SearchNavBar />
+        <div className="container" style={{ marginTop: 100 }}>
+          {filteredClubs.length > 0 ? (
+            <List
+              itemLayout="horizontal"
+              dataSource={filteredClubs}
+              renderItem={renderClubList}
+              pagination={{ pageSize: 4 }}
+            />
+          ) : (
+            <Empty description="No clubs found." />
+          )}
         </div>
+        <Footer />
+        <Modal
+          title="Feedbacks"
+          open={showModal}
+          onCancel={() => setShowModal(false)}
+          footer={[
+            <Button key="close" onClick={() => setShowModal(false)}>
+              Close
+            </Button>,
+          ]}
+        >
+          {feedbacks.length > 0 ? (
+            feedbacks.map((feedback, index) => (
+              <Card key={index} style={{ marginBottom: 10 }}>
+                <Typography.Text>{feedback.feedbackContent}</Typography.Text>
+                <br />
+                <Rate value={feedback.feedbackRating} disabled />
+              </Card>
+            ))
+          ) : (
+            <Empty description="No feedbacks found." />
+          )}
+        </Modal>
+      </div>
     </>
   );
 };

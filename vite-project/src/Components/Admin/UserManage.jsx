@@ -1,6 +1,7 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { Table, Empty, Button, Modal, message, Select } from 'antd'; // Import Modal and Select from Ant Design
+import { Table, Empty, Button, Modal, message } from 'antd';
 import api from '../../config/axios';
 
 const UserManage = () => {
@@ -9,19 +10,14 @@ const UserManage = () => {
   const [error, setError] = useState(null);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
   const [accountIdToUpdate, setAccountIdToUpdate] = useState(null);
-  const [statusToUpdate, setStatusToUpdate] = useState(null); // New state variable for update status
-
-
+  const [statusToUpdate, setStatusToUpdate] = useState(null);
 
   const handleUpdateStatus = (accountId) => {
     setAccountIdToUpdate(accountId);
-    // Get the current status of the account
-    const currentStatus = accounts.find((account) => account.accountId === accountId)?.status; // Optional Chaining
-    setStatusToUpdate(currentStatus === 'Active' ? false : true); // Set the status to update based on current status
-    setIsUpdateModalVisible(true); // Show confirmation modal
+    const currentStatus = accounts.find((account) => account.accountId === accountId)?.status;
+    setStatusToUpdate(currentStatus === 'Active' ? false : true);
+    setIsUpdateModalVisible(true);
   };
-
-
 
   const handleConfirmUpdate = async () => {
     setIsUpdateModalVisible(false);
@@ -44,13 +40,10 @@ const UserManage = () => {
     }
   };
 
-
-
-
   const handleCancelUpdate = () => {
     setIsUpdateModalVisible(false);
     setAccountIdToUpdate(null);
-    setStatusToUpdate(null); // Reset statusToUpdate on cancel
+    setStatusToUpdate(null);
   };
 
   useEffect(() => {
@@ -73,25 +66,47 @@ const UserManage = () => {
   }, []);
 
   const columns = [
-    // Define your table columns here based on the API data structure
     { title: 'ID', dataIndex: 'accountId' },
     { title: 'Full name', dataIndex: 'fullName' },
     { title: 'Email', dataIndex: 'email' },
     { title: 'Role', dataIndex: 'role' },
     { title: 'Phone No.', dataIndex: 'phone' },
-    { title: 'Account status', dataIndex: 'status' },
+    {
+      title: 'Account status',
+      dataIndex: 'status',
+      render: (text, record) => (
+        <span style={{ display: 'flex', alignItems: 'center' }}>
+          <span
+            style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              backgroundColor: record.status === 'Active' ? 'green' : 'red',
+              marginRight: '8px',
+            }}
+          />
+          <span
+            style={{
+              color: 'black',
+              padding: '5px 10px',
+              borderRadius: '4px',
+            }}
+          >
+            {record.status}
+          </span>
+        </span>
+      ),
+    },
     {
       title: 'Action',
-      dataIndex: '', // No data index needed for action column
+      dataIndex: '',
       render: (_, record) => (
-        record.role != "ADMIN" &&
+        record.role !== "ADMIN" &&
         <Button type="primary" onClick={() => handleUpdateStatus(record.accountId)}>
-          Update Status
+          Change status
         </Button>
-
-
       ),
-    }, // Add an action column with a button
+    },
   ];
 
   return (
@@ -120,4 +135,3 @@ const UserManage = () => {
 };
 
 export default UserManage;
-

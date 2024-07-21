@@ -11,18 +11,22 @@ import {
   List,
   Breadcrumb,
   Button,
-  Dropdown
+  Dropdown,
+  Empty
 } from "antd";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../config/axios"; // Assuming your API client
 import QRScanner from "../QRCheckin/StaffPage";
 import StaffBookingForm from "../BookingForm/StaffBookingForm";
 import RevenueChart from "./RevenueChart";
+import ClubOwnerBalance from "./ClubOwnerBalance";
+import TopUpHistory from "../Wallet/TopUpHistory";
 
 const ClubOwnerManage = () => {
   const [club, setClub] = useState(null);
   const isLoggedIn = localStorage.getItem("token");
   const userRole = localStorage.getItem("userRole");
+  const userID = localStorage.getItem("userId");
   const [selectedKey, setSelectedKey] = useState("1");
   const { clubId } = useParams(); // Get club ID from URL parameters
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
@@ -83,7 +87,7 @@ const ClubOwnerManage = () => {
   }, [clubId]);
 
   if (!club) {
-    return <Typography.Text>Loading club details...</Typography.Text>;
+    return <Empty description="No data"/>
   }
 
   // const { name, pictureLocation, price, address, openTime, closeTime, ownerName } = club;
@@ -92,7 +96,6 @@ const ClubOwnerManage = () => {
     <>
       {isLoggedIn ? (
         <Layout style={{ minHeight: "100vh" }}>
-          {/* Replace with your actual admin dashboard sider menu */}
           <Layout.Sider>
             <Menu
               theme="dark"
@@ -102,7 +105,8 @@ const ClubOwnerManage = () => {
               onClick={({ key }) => setSelectedKey(key)}
             >
               <Menu.Item key="1">Dashboard</Menu.Item>
-              {/* Add more menu items as needed */}
+              <Menu.Item key="5">Balance</Menu.Item>
+              <Menu.Item key="6">Top-up history</Menu.Item>
               <Menu.Item key="2">Check In</Menu.Item>
               <Menu.Item key="3">Booking</Menu.Item>
               <Menu.Item key="4">Revenue Chart</Menu.Item>
@@ -122,7 +126,7 @@ const ClubOwnerManage = () => {
               }}
             >
               <div></div>
-              <div>Court Owner's workspace</div>
+              <div>{club.name}'s workspace</div>
               <Dropdown
                 overlay={accountMenu}
                 trigger="click"
@@ -143,7 +147,7 @@ const ClubOwnerManage = () => {
 
             <Layout.Content style={{ padding: "0 24px", minHeight: 280 }}>
               {selectedKey === "1" && (
-                <Card title={club.name} bordered={true}>
+                <Card bordered={true}>
                   <Row gutter={[16, 16]}>
                     <Col xs={24} md={12} lg={8}>
                       <Image src={club.picture_location} alt={name} width="100%" />
@@ -191,6 +195,8 @@ const ClubOwnerManage = () => {
               {selectedKey === "2" && <QRScanner />}
               {selectedKey === "3" && <StaffBookingForm id={club.clubId} />}
               {selectedKey === "4" && <RevenueChart clubId={club.clubId} />}
+              {selectedKey === "5" && <ClubOwnerBalance/>}
+              {selectedKey === "6" && <TopUpHistory/>}
             </Layout.Content>
 
             {/* Replace with your actual admin dashboard footer */}

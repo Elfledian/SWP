@@ -70,14 +70,12 @@ const BookingForm = ({ children }) => {
       return;
     }
     try {
-      // Make the POST request
       const response = await api.post("/booking/bookingCombo", {
         club_id: +id,
         booking_type_id: values.booking_type_id,
         bookingDetailRequestCombos: bookingDetailRequestCombos,
       });
       console.log(response)
-      // Handle response here
 
       const bId = response.data.bookingResponse.id
       setBookId(bId)
@@ -94,7 +92,6 @@ const BookingForm = ({ children }) => {
         { name: "booking_type_id", readonly: true },
         { name: "submitButton", readonly: true }
 
-        // ... add other form fields
       ]);
       setIsBookingConfirmed(true);
       console.log("Booking created:", response.data);
@@ -126,23 +123,21 @@ const BookingForm = ({ children }) => {
   }, []);
 
   const handlePayament = async () => {
-    const payment = {
-      bookingId: bookId,
-      amount: totalPrice
-    }
 
-    try {
-      const paymentResponse = await api.post("/pay", payment)
-      const paymentURL = paymentResponse.data; // Assuming the entire response is the URL
-      if (paymentURL) {
-        window.location.href = paymentURL;
-      } else {
-        console.error("No paymentURL found in response");
+
+      try {
+        const paymentResponse = await api.post(`/transactions/booking-with-wallet/${bookId}`)
+        console.log(paymentResponse.data)
+        if(paymentResponse){
+          message.success("Booking success!")
+          setTimeout(() => {
+            navigate('/');
+          }, 1000);
+        }
+      } catch (error) {
+        message.error("An unknown error occurred. Please try again later.")
+        setError(error.message);
       }
-
-    } catch (error) {
-      setError(error.message);
-    }
   }
 
   return (
@@ -155,7 +150,6 @@ const BookingForm = ({ children }) => {
 
           <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 100 }}>
             {" "}
-            {/* Added margin-top for space */}
             <div
               style={{
                 width: "511px",
@@ -200,9 +194,9 @@ const BookingForm = ({ children }) => {
                     ]}
                   >
                     <Select onChange={(value) => setBookingType(value)}>
-                      <Option value={1}>Lịch ngày</Option>
-                      <Option value={2}>Lịch cố định</Option>
-                      <Option value={3}>Lịch linh hoạt</Option>
+                      <Option value={1}>Booking by date</Option>
+                      <Option value={2}>Fixed Schedule</Option>
+                      <Option value={3}>Flexible Schedule</Option>
                     </Select>
                   </Form.Item>
 
@@ -246,7 +240,6 @@ const BookingForm = ({ children }) => {
           {/* Right form */}
           <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 100 }}>
             {" "}
-            {/* Added margin-top for space */}
             <div
               style={{
                 width: "511px",
