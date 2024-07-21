@@ -344,13 +344,13 @@ public class BookingService {
             customerAccount.setBalance(customerAccount.getBalance() + refundAmount);
 
             Account clubOwnerAccount = booking.getClub().getAccount();
-            float clubOwnerRefund = (float) (transactionType.getTotalAmount() * 0.35);
+            float clubOwnerRefund = (float) (transactionType.getTotalAmount() * 0.3);
             clubOwnerAccount.setBalance(clubOwnerAccount.getBalance() + clubOwnerRefund);
 
             Account toAccount = authenticationRepository.findById(1L).orElseThrow(() -> new RuntimeException("Account not found"));
             toAccount.setBalance(toAccount.getBalance() - (float)(double)transactionType.getTotalAmount());
 
-            float toAccountRefund = (float)(transactionType.getTotalAmount() * 0.05);
+            float toAccountRefund = (float)(transactionType.getTotalAmount() * 0.1);
             toAccount.setBalance(toAccount.getBalance() + toAccountRefund);
 
             Transaction refundTransaction = new Transaction();

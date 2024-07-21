@@ -205,20 +205,27 @@ public class TransactionService {
         }
     }
 
-    public boolean updateBalance(Long fromId, Long toId, double amount) {
+    public int updateBalance(Long fromId, Long toId, double amount) {
         Account fromAccount = authenticationRepository.findAccountByAccountId(fromId);
         Account toAccount = authenticationRepository.findAccountByAccountId(toId);
         if(fromAccount == null && toAccount == null)
         {
-            return false;
-        }
-        else if(fromAccount != null && toAccount != null) {
+            return 0;
+        }else if(fromAccount == null && toAccount != null) {
+            toAccount.setBalance(toAccount.getBalance() + (float) amount);
+            authenticationRepository.save(toAccount);
+            return 1;
+        }else if(fromAccount != null && toAccount == null) {
+            fromAccount.setBalance(toAccount.getBalance() - (float) amount);
+            authenticationRepository.save(fromAccount);
+            return 2;
+        }else if(fromAccount != null && toAccount != null) {
             fromAccount.setBalance(fromAccount.getBalance()-(float)amount);
             toAccount.setBalance(toAccount.getBalance()+(float)amount);
             authenticationRepository.save(fromAccount);
             authenticationRepository.save(toAccount);
-            return true;
-        }else return false;
+            return 3;
+        }else return 0;
     }
 
 
