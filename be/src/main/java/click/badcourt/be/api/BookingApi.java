@@ -31,7 +31,6 @@ import java.util.Optional;
 @SecurityRequirement(name = "api")
 @CrossOrigin("*")
 public class BookingApi {
-
     @Autowired
     private BookingService bookingService;
     @Autowired
