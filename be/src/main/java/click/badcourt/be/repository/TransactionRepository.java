@@ -33,4 +33,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "GROUP BY MONTH(t.paymentDate)")
     List<Object[]> getTotalAmountByMonthForClub(int year, Long clubId);
     List<Transaction> findAllByFromaccount_AccountId(Long accountId);
+    List<Transaction> findByBooking_BookingIdAndStatus(Long bookingId, TransactionEnum status);
+
 }

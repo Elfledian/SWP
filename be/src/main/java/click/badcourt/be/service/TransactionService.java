@@ -388,8 +388,8 @@ public class TransactionService {
         }
         List<Booking> bookings = bookingRepository.findBookingsByClub_ClubId(club.getClubId());
         for (Booking booking : bookings) {
-            Transaction transaction = transactionRepository.findByBooking_BookingId(booking.getBookingId()).orElse(null);
-            if (transaction != null && transaction.getStatus().equals(TransactionEnum.FULLY_PAID)) {
+            List<Transaction> transactions = transactionRepository.findByBooking_BookingIdAndStatus(booking.getBookingId(), TransactionEnum.FULLY_PAID);
+            for (Transaction transaction : transactions) {
                 LocalDate transactionDate = transaction.getPaymentDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                 String periodKey;
                 switch (period) {
