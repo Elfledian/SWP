@@ -140,7 +140,6 @@ const ManageClub = () => {
   });
 
   const columns = [
-    // Define your table columns here based on the API data structure
     { title: "ID", dataIndex: "clubId" },
     { title: "Club Name", dataIndex: "name" },
     { title: "Address", dataIndex: "address" },

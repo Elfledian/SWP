@@ -41,6 +41,7 @@
 //     const handleLogin1 = async (e) => {
 //         e.preventDefault();
 
+
 //         if (email.trim() === '' || password.trim() === '') {
 //             setError('Please enter both phone number and password');
 //         }
@@ -173,7 +174,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../API/LoginService";
 import Divider from "@mui/material/Divider";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 
 // import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 <script src="https://accounts.google.com/gsi/client" async></script>;
@@ -186,7 +186,6 @@ import axios from "axios";
 import GoogleButton from "react-google-button";
 import { useAuth } from "./AuthProvider";
 import { Chip } from "@mui/material";
-import { Button } from "antd";
 const Login = () => {
   const [visible, setVisible] = useState("");
   const [email, setEmail] = useState("");
@@ -222,6 +221,12 @@ const Login = () => {
         const data = await login(email, password);
         // console.log("Login successful!", data);
         // localStorage.setItem("userName", email)
+         const token = data.token;
+        localStorage.setItem("token", token)
+        // authen.handleLogin(token);
+        // const resData = data.data 
+        const userId = data.accountId
+        localStorage.setItem("userId", userId)
         const fullname = data.fullName;
         localStorage.setItem("userName", fullname);
         const userEmail = data.email;
@@ -230,17 +235,16 @@ const Login = () => {
         localStorage.setItem("userPhone", userPhone);
         const role = data.role;
         localStorage.setItem("userRole", role);
-        const token = data.token;
-        // localStorage.setItem("token", token)
-        authen.handleLogin(token);
-        if (role == "STAFF") {
-          navigate("/staff");
+       
+       
+        if (role == "CLUB_OWNER") {
+          navigate("/clubManage");
+          localStorage.setItem("userId", userId)
         } else if (role == "ADMIN") {
           navigate("/adminDashboard");
         } else {
           navigate("/");
         }
-        // Handle successful login (e.g., store token, redirect)
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -261,7 +265,7 @@ const Login = () => {
       const newToken = newTokenData.token;
       localStorage.setItem("token", newToken);
       const ggData = res.data;
-      console.log(ggData);
+      console.log(ggData)
       const roleGG = ggData.role;
       localStorage.setItem("userRole", roleGG);
       const userEmail = ggData.email;
@@ -270,6 +274,8 @@ const Login = () => {
       localStorage.setItem("userName", name);
       const userPhoneNo = ggData.phone;
       localStorage.setItem("userPhone", userPhoneNo);
+      const userId = ggData.accountId
+      localStorage.setItem("userId", userId)
       navigate("/");
     } catch (error) {
       console.log(error);
@@ -279,11 +285,6 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <Link to={`/`}>
-          <Button type="text">
-            <ArrowLeftOutlined /> Back
-          </Button>
-        </Link>
         <h2 className="login-title">Login</h2>
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleLogin1} className="login-form">

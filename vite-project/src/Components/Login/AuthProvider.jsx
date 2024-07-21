@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 	}
 
 	const handleLogout = () => {
-		localStorage.removeItem('userId')
+		localStorage.removeItem("userId")
 		localStorage.removeItem("userName")
 		localStorage.removeItem("userRole")
 		localStorage.removeItem("token")

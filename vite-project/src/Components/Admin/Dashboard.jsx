@@ -47,7 +47,7 @@ const items = [
   getItem("Manage Users", "12", <UserOutlined />),
   getItem("Manage Club", "10", <DesktopOutlined />),
   getItem("Chart", "sub1", <FundViewOutlined />, [
-    getItem("Income Analysis", "1", <LineChartOutlined />),
+    // getItem("Income Analysis", "1", <LineChartOutlined />),
     getItem("Total Bookings", "11", <BarChartOutlined />),
     getItem("Booking Status", "13", <PieChartOutlined />),
   ]),

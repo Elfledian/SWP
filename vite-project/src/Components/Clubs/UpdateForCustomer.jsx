@@ -5,6 +5,7 @@ import { Card, Typography, Space, Row, Col, Button, Form, Input, Modal, message,
 import NavBar from '../layout/NavBar';
 import Footer from '../layout/Footer';
 import moment from 'moment';
+import SearchNavBar from '../layout/SearchNavBar';
 
 const { Meta } = Card;
 const { Option } = Select;
@@ -26,9 +27,9 @@ const UpdateForCustomer = () => {
 
     useEffect(() => {
         if (userRole != "CUSTOMER") {
-          navigate('/error404');
+            navigate('/error404');
         }
-      }, [userRole, navigate]);
+    }, [userRole, navigate]);
 
     useEffect(() => {
         const fetchBookingDetail = async () => {
@@ -118,93 +119,93 @@ const UpdateForCustomer = () => {
 
     return (
         <>
-      {isLoggedIn ? (
-        <div>
-            <NavBar />
-            <div style={{ marginTop: 130, marginBottom: 30 }}>
-                <h3 style={{ textAlign: 'center' }}>Booking ID: {bookingid}</h3>
+            {isLoggedIn ? (
+                <div>
+                    <SearchNavBar />
+                    <div style={{ marginTop: 130, marginBottom: 30 }}>
+                        <h3 style={{ textAlign: 'center' }}>Booking ID: {bookingid}</h3>
 
-                <Row gutter={[16, 16]} justify="center">
-                    {bookingDetail?.map((booking, index) => {
-                        const bookingDate = new Date(booking.bookingDate);
-                        const year = bookingDate.getFullYear();
-                        const month = bookingDate.getMonth() + 1;
-                        const day = bookingDate.getDate();
-                        const dayOfWeek = bookingDate.toLocaleString('en-US', { weekday: 'long' });
+                        <Row gutter={[16, 16]} justify="center">
+                            {bookingDetail?.map((booking, index) => {
+                                const bookingDate = new Date(booking.bookingDate);
+                                const year = bookingDate.getFullYear();
+                                const month = bookingDate.getMonth() + 1;
+                                const day = bookingDate.getDate();
+                                const dayOfWeek = bookingDate.toLocaleString('en-US', { weekday: 'long' });
 
-                        return (
-                            <Col key={index} span={10}>
-                                <Card title={`Court: ${booking.courtName}`} style={{ margin: '0 auto' }}>
-                                    <Space direction="vertical">
-                                        <Typography.Text>Name: {booking.fullnameoforder}</Typography.Text>
-                                        <Typography.Text>Phone: {booking.phonenumber}</Typography.Text>
-                                        <Typography.Text strong>Time: Start: {booking.start_time} - End: {booking.end_time}</Typography.Text>
-                                        <Typography.Text strong>Date: {month}/{day}/{year} ({dayOfWeek})</Typography.Text>
-                                        <Typography.Text>Status: {booking.status}</Typography.Text>
-                                        <Button
-                                            onClick={() => showModal(booking)}
-                                            disabled={
-                                                moment().utc().format('YYYY-MM-DD') >= moment.utc(booking.bookingDate).format('YYYY-MM-DD')
-                                                || booking.status !== 'NOTYET'
-                                            }
-                                        >
-                                            Update
-                                        </Button>
-
-
-
-
-                                    </Space>
-                                </Card>
-                                <Modal title="Update Booking" visible={isModalVisible && currentBooking === booking} onCancel={() => setIsModalVisible(false)} footer={null}>
-                                    <Form onFinish={handleUpdate}>
-                                        <Form.Item name="ctslot_id">
-                                            <Select placeholder="Select a court" onChange={handleCourtChange}>
-                                                {courts.map((court) => (
-                                                    <Option key={court.id} value={court.id}>{court.courtName}</Option>
-                                                ))}
-                                            </Select>
-                                        </Form.Item>
-                                        <DatePicker
-                                            placeholder="Select a date"
-                                            format="YYYY-MM-DD"
-                                            onChange={handleDateChange}
-                                            disabledDate={(current) => {
-
-                                                const bookingDate = moment(booking.bookingDate);
-
-                                                return current && (current < moment().startOf('day') || current > bookingDate.add(3, 'days'));
-                                            }}
-                                        />
-
-
-
-                                        <Form.Item name="courtTimeSlotId">
-                                            {courtTimeSlots.filter(timeSlot => timeSlot.status === 'AVAILABLE').map((timeSlot) => (
-                                                <Tag
-                                                    key={timeSlot.courtTimeSlotId}
-                                                    color={selectedTimeSlot === timeSlot.courtTimeSlotId ? 'blue' : 'default'}
-                                                    onClick={() => handleTimeSlotClick(timeSlot.courtTimeSlotId)}
-                                                    style={{ cursor: 'pointer' }}
+                                return (
+                                    <Col key={index} span={10}>
+                                        <Card title={`Court: ${booking.courtName}`} style={{ margin: '0 auto' }}>
+                                            <Space direction="vertical">
+                                                <Typography.Text>Name: {booking.fullnameoforder}</Typography.Text>
+                                                <Typography.Text>Phone: {booking.phonenumber}</Typography.Text>
+                                                <Typography.Text strong>Time: Start: {booking.start_time} - End: {booking.end_time}</Typography.Text>
+                                                <Typography.Text strong>Date: {month}/{day}/{year} ({dayOfWeek})</Typography.Text>
+                                                <Typography.Text>Status: {booking.status}</Typography.Text>
+                                                <Button
+                                                    onClick={() => showModal(booking)}
+                                                    disabled={
+                                                        moment().utc().format('YYYY-MM-DD') >= moment.utc(booking.bookingDate).format('YYYY-MM-DD')
+                                                        || booking.status !== 'NOTYET' || booking.status === "CHECKEDIN"
+                                                    }
                                                 >
-                                                    {timeSlot.start_time} - {timeSlot.end_time}
-                                                </Tag>
-                                            ))}
-                                        </Form.Item>
-                                        <Button type="primary" htmlType="submit">Submit</Button>
-                                    </Form>
-                                </Modal>
-                            </Col>
-                        );
-                    })}
-                </Row>
-            </div>
-            <Footer />
-        </div>
+                                                    Update
+                                                </Button>
+
+
+
+
+                                            </Space>
+                                        </Card>
+                                        <Modal title="Update Booking" visible={isModalVisible && currentBooking === booking} onCancel={() => setIsModalVisible(false)} footer={null}>
+                                            <Form onFinish={handleUpdate}>
+                                                <Form.Item name="ctslot_id">
+                                                    <Select placeholder="Select a court" onChange={handleCourtChange}>
+                                                        {courts.map((court) => (
+                                                            <Option key={court.id} value={court.id}>{court.courtName}</Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+                                                <DatePicker
+                                                    placeholder="Select a date"
+                                                    format="YYYY-MM-DD"
+                                                    onChange={handleDateChange}
+                                                    disabledDate={(current) => {
+
+                                                        const bookingDate = moment(booking.bookingDate);
+
+                                                        return current && (current < moment().startOf('day') || current > bookingDate.add(3, 'days'));
+                                                    }}
+                                                />
+
+
+
+                                                <Form.Item name="courtTimeSlotId">
+                                                    {courtTimeSlots.filter(timeSlot => timeSlot.status === 'AVAILABLE').map((timeSlot) => (
+                                                        <Tag
+                                                            key={timeSlot.courtTimeSlotId}
+                                                            color={selectedTimeSlot === timeSlot.courtTimeSlotId ? 'blue' : 'default'}
+                                                            onClick={() => handleTimeSlotClick(timeSlot.courtTimeSlotId)}
+                                                            style={{ cursor: 'pointer' }}
+                                                        >
+                                                            {timeSlot.start_time} - {timeSlot.end_time}
+                                                        </Tag>
+                                                    ))}
+                                                </Form.Item>
+                                                <Button type="primary" htmlType="submit">Submit</Button>
+                                            </Form>
+                                        </Modal>
+                                    </Col>
+                                );
+                            })}
+                        </Row>
+                    </div>
+                    <Footer />
+                </div>
             ) : (
                 navigate('/login')
-              )}
-            </>
+            )}
+        </>
     );
 };
 

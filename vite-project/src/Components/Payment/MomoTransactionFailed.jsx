@@ -9,7 +9,7 @@ import moment from "moment";
 import api from '../../config/axios';
 
 
-const TransactionFailed = ({ message = 'Transaction failed!', details = null }) => {
+const MomoTransactionFailed = ({ message = 'Transaction failed!', details = null }) => {
   const param = useGetParams();
   const bookingId = param("vnp_OrderInfo")
   const transactionDate = moment()
@@ -63,4 +63,4 @@ const TransactionFailed = ({ message = 'Transaction failed!', details = null }) 
   );
 };
 
-export default TransactionFailed;
+export default MomoTransactionFailed;

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from "../../config/axios";
 import "../css/CourtTimeSlotList.css";
-import { Modal, Button } from 'react-bootstrap';
+import { Modal} from 'react-bootstrap';
 import AddCourtTimeSlot from './AddCourtTimeSlot';
 import '../css/AddCourtTimeSlots.css';
+import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
 
 const CourtTimeSlotList = () => {
     const { courtId } = useParams();
@@ -41,6 +43,11 @@ const CourtTimeSlotList = () => {
 
     return (
         <div className="center-div">
+            <Link to={`/clubManage`}>
+                <Button type="text">
+                    <ArrowLeftOutlined /> Back
+                </Button>
+            </Link>
             <div className="center-content">
                 <h1>Court Time Slots</h1>
                 <button onClick={handleAddCourtTimeSlot} className="btn btn-primary">

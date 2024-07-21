@@ -19,6 +19,9 @@ const Home = () => {
     if (userRole === "ADMIN") {
       navigate('/adminDashboard');
     }
+    else if (userRole === "CLUB_OWNER") {
+      navigate('/clubManage');
+    }
   }, [userRole, navigate]);
 
   return (

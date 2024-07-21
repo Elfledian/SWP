@@ -10,12 +10,12 @@ import api from '../../config/axios';
 import moment from "moment";
 
 
-const TransactionSuccess = ({ message = 'Payment successful!', details = null }) => {
+const MomoTransactionSuccess = ({ message = 'Payment successful!', details = null }) => {
   const param = useGetParams();
-  const transactionNo = param("vnp_TransactionNo")
+  const transactionNo = param("transId")
   const transactionDate = moment()
-  const bankInfo = param("vnp_BankCode")
-  const transactionid = param("vnp_OrderInfo")
+  const bankInfo = param("partnerCode")
+  const transactionid = param("orderInfo")
 
   // const payload = {
   //   paymentDate: transactionDate,
@@ -72,7 +72,7 @@ const TransactionSuccess = ({ message = 'Payment successful!', details = null })
           <p>Time: {new Date(transactionDate).toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
           <p>Transaction No: {transactionNo} </p>
           {/* <p>Amount: {amount}</p> */}
-          <p>Card: {bankInfo}</p>
+          <p>Payment Method: {bankInfo}</p>
 
           <Link to="/" style={{ textDecoration: 'none' }}>
             <Typography.Text style={{ fontSize: 18 }}>Redirect to Home</Typography.Text>
@@ -83,4 +83,4 @@ const TransactionSuccess = ({ message = 'Payment successful!', details = null })
   );
 };
 
-export default TransactionSuccess;
+export default MomoTransactionSuccess;
