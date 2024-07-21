@@ -11,6 +11,7 @@ const ShowBooking = (props) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const today = moment();
 
   const showModal = async (booking) => {
     setCurrentBooking(booking);
@@ -163,11 +164,9 @@ const ShowBooking = (props) => {
                 <Button
                   style={{ cursor: 'pointer' }}
                   onClick={() => showModal(booking)}
-                  // disabled={
-                  //   moment().isAfter(moment(booking.bookingDate).subtract(2, 'hours'))
-                  //   // moment().startOf('hour').isAfter(booking.start_time +1)
-                  //   // || booking.status !== 'NOTYET'
-                  // }
+                  disabled={
+                    moment().hour()>parseInt(booking.start_time.split(':')[0])
+                  }
                 >
                   Update
                 </Button>
