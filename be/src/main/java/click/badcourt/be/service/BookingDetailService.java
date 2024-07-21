@@ -287,14 +287,14 @@ public class BookingDetailService {
 
         for (LocalDate date : bookingDates) {
 
-//            boolean isAvailable = existingBookings.stream()
-//                    .noneMatch(bookingdt ->
-//                            bookingdt.getDate().compareTo(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())) == 0 &&
-//                                    bookingdt.getCourtTimeslot().getCourtTSlotID() == request.getCourtTSId());
-//
-//            if (!isAvailable) {
-//                throw new IllegalArgumentException("CourtTimeslot are already in use");
-//            }
+            boolean isAvailable = existingBookings.stream()
+                    .noneMatch(bookingdt ->
+                            bookingdt.getDate().compareTo(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())) == 0 &&
+                                    bookingdt.getCourtTimeslot().getCourtTSlotID() == request.getCourtTSId());
+
+            if (!isAvailable) {
+                throw new IllegalArgumentException("CourtTimeslot are already in use");
+            }
 
 
             BookingDetail bookingDetail = new BookingDetail();
@@ -349,7 +349,11 @@ public class BookingDetailService {
         LocalDate startDate = bookingDetailRequest.getBookingDate();
         Date datee = Date.from(startDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         List<BookingDetail> bookingDTList = bookingDetailRepository.findBookingDetailsByDeletedFalse();
-
+        for (BookingDetail bookingdt : bookingDTList) {
+            if ((bookingdt.getDate().compareTo(datee) == 0) && bookingdt.getCourtTimeslot().getCourtTSlotID() == bookingDetailRequest.getCourtTSId()) {
+                throw new IllegalArgumentException("CourtTimeslot are already in use");
+            }
+        }
 
         BookingDetail bookingDetail= new BookingDetail();
         Optional<Booking> bookingOptional= bookingRepository.findById(id);
@@ -376,6 +380,11 @@ public class BookingDetailService {
         LocalDate startDate = bookingDetailRequest.getBookingDate();
         Date datee = Date.from(startDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         List<BookingDetail> bookingDTList = bookingDetailRepository.findBookingDetailsByDeletedFalse();
+        for (BookingDetail bookingdt : bookingDTList) {
+            if ((bookingdt.getDate().compareTo(datee) == 0) && bookingdt.getCourtTimeslot().getCourtTSlotID() == bookingDetailRequest.getCourtTSId()) {
+                throw new IllegalArgumentException("CourtTimeslot are already in use");
+            }
+        }
 
         BookingDetail bookingDetail= new BookingDetail();
         Optional<Booking> bookingOptional= bookingRepository.findById(id);

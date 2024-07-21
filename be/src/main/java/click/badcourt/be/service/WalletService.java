@@ -305,7 +305,7 @@ public class WalletService {
         return result.toString();
     }
     @Transactional
-    @Scheduled(cron = "0 50 12 * * *") // Run every day at 7 PM
+    @Scheduled(cron = "0 00 11 * * *") // Run every day at 6 PM
     public void transferFundsToClubOwners() {
         logger.info("Background job for transferring funds is running at {}", new Date());
 
@@ -359,7 +359,7 @@ public class WalletService {
         logger.info("Background job for transferring funds has completed.");
     }
     @Transactional
-    @Scheduled(cron = "0 0 0 1 * *") // Run at midnight on the first day of every month
+    @Scheduled(cron = "0 0 0 1 * *") // Run at midnight on the first day at 7AM of every month
     public void chargeOfClubPosting() throws MessagingException, IOException {
         logger.info("Background job for Club charge is running at {}", new Date());
         int temp;

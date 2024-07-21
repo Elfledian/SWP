@@ -432,6 +432,17 @@ public class BookingService {
 //
 //    }
     public BookingComboResponse createBookingCombo(BookingComboRequest bookingComboRequest){
+        List<BookingDetail> bookingDTList = bookingDetailRepository.findBookingDetailsByDeletedFalse();
+        List<BookingDetailRequestCombo> bookingDetailCheck = bookingComboRequest.getBookingDetailRequestCombos();
+        for (BookingDetail bookingdt : bookingDTList) {
+            for(BookingDetailRequestCombo bookingDetailRequest : bookingDetailCheck) {
+                LocalDate startDate = bookingDetailRequest.getBookingDate();
+                Date datee = Date.from(startDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+                    if ((bookingdt.getDate().compareTo(datee) == 0) && bookingdt.getCourtTimeslot().getCourtTSlotID() == bookingDetailRequest.getCourtTSId()) {
+                        throw new IllegalArgumentException("CourtTimeslot are already in use");
+                }
+            }
+        }
         BookingResponse bookingCreateTemporary = createBookingNew(bookingComboRequest.getClub_id(),bookingComboRequest.getBooking_type_id());
         BookingComboResponse bookingComboResponse = new BookingComboResponse();
         bookingComboResponse.setBookingResponse(bookingCreateTemporary);
