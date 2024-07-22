@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Card, Descriptions, List, Modal, Button, Form, Select, DatePicker, message, Tag } from "antd";
+import {
+  Card,
+  Descriptions,
+  List,
+  Modal,
+  Button,
+  Form,
+  Select,
+  DatePicker,
+  message,
+  Tag,
+} from "antd";
 import api from "../../config/axios";
-import moment from 'moment'
+import moment from "moment";
 const ShowBooking = (props) => {
-  const isLoggedIn = localStorage.getItem("token")
+  const isLoggedIn = localStorage.getItem("token");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentBooking, setCurrentBooking] = useState(null);
   const [courts, setCourts] = useState([]);
@@ -17,16 +28,13 @@ const ShowBooking = (props) => {
     setCurrentBooking(booking);
     setIsModalVisible(true);
 
-
     try {
       const response = await api.get(`/court/${props.clubId}`);
       setCourts(response.data);
     } catch (error) {
-      console.error('Failed to fetch courts:', error);
+      console.error("Failed to fetch courts:", error);
     }
   };
-
-
 
   // const handleOk = async () => {
   //   try {
@@ -49,23 +57,22 @@ const ShowBooking = (props) => {
     try {
       const changeSlotBookingDetailRequestCombo = {
         newcourtTSId: selectedTimeSlot,
-        newbookingDate: selectedDate.format('YYYY-MM-DD')
+        newbookingDate: selectedDate.format("YYYY-MM-DD"),
       };
-      const response = await api.put(`/bookingDetail/slot/${currentBooking.bookingDetailsId}`, changeSlotBookingDetailRequestCombo);
+      const response = await api.put(
+        `/bookingDetail/slot/${currentBooking.bookingDetailsId}`,
+        changeSlotBookingDetailRequestCombo
+      );
       console.log("Booking updated:", response.data);
-      message.success("Updated success!")
+      message.success("Updated success!");
       setIsModalVisible(false);
       await props.refreshBookings(props.selectedDate); // Make sure refreshBookings is awaited
       console.log("Data reloaded successfully"); // Log message after data reload
     } catch (error) {
-      message.error("Error!")
+      message.error("Error!");
       console.error("Error updating booking:", error);
     }
   };
-  
-  
-
-
 
   const handleCancel = () => {
     setIsModalVisible(false);
@@ -75,10 +82,12 @@ const ShowBooking = (props) => {
     setSelectedCourt(value);
     if (selectedDate) {
       try {
-        const response = await api.get(`/courtTimeSlot/${value}/${selectedDate.format('YYYY-MM-DD')}`);
+        const response = await api.get(
+          `/courtTimeSlot/${value}/${selectedDate.format("YYYY-MM-DD")}`
+        );
         setCourtTimeSlots(response.data);
       } catch (error) {
-        console.error('Failed to fetch court time slots:', error);
+        console.error("Failed to fetch court time slots:", error);
       }
     }
   };
@@ -87,10 +96,12 @@ const ShowBooking = (props) => {
     setSelectedDate(date);
     if (selectedCourt) {
       try {
-        const response = await api.get(`/courtTimeSlot/${selectedCourt}/${date.format('YYYY-MM-DD')}`);
+        const response = await api.get(
+          `/courtTimeSlot/${selectedCourt}/${date.format("YYYY-MM-DD")}`
+        );
         setCourtTimeSlots(response.data);
       } catch (error) {
-        console.error('Failed to fetch court time slots:', error);
+        console.error("Failed to fetch court time slots:", error);
       }
     }
   };
@@ -127,11 +138,14 @@ const ShowBooking = (props) => {
                         {booking.courtTSId}
                       </Descriptions.Item>
                       <Descriptions.Item label="Booking Date">
-                        {new Date(booking.bookingDate).toLocaleDateString("en-GB", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                        })}
+                        {new Date(booking.bookingDate).toLocaleDateString(
+                          "en-GB",
+                          {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          }
+                        )}
                       </Descriptions.Item>
                       <Descriptions.Item label="Booking Details ID">
                         {booking.bookingDetailsId}
@@ -155,30 +169,44 @@ const ShowBooking = (props) => {
                       <Descriptions.Item label="Status">
                         {booking.status}
                       </Descriptions.Item>
-
-
                     </Descriptions>
-
                   }
                 />
                 <Button
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: "pointer" }}
                   onClick={() => showModal(booking)}
                   disabled={
-                    moment().hour()>parseInt(booking.start_time.split(':')[0])
+                    moment().isAfter(
+                      moment(booking.bookingDate).endOf("day")
+                    ) ||
+                    (moment().isSame(moment(booking.bookingDate), "day") &&
+                      moment().hour() >
+                        parseInt(booking.start_time.split(":")[0]))
                   }
+                  //   // moment().startOf('hour').isAfter(booking.start_time +1)
+                  //   // || booking.status !== 'NOTYET'
                 >
                   Update
                 </Button>
               </List.Item>
             )}
           />
-          <Modal title="Update Booking" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+          <Modal
+            title="Update Booking"
+            visible={isModalVisible}
+            onOk={handleOk}
+            onCancel={handleCancel}
+          >
             <Form>
               <Form.Item name="ctslot_id">
-                <Select placeholder="Select a court" onChange={handleCourtChange}>
+                <Select
+                  placeholder="Select a court"
+                  onChange={handleCourtChange}
+                >
                   {courts.map((court) => (
-                    <Option key={court.id} value={court.id}>{court.courtName}</Option>
+                    <Option key={court.id} value={court.id}>
+                      {court.courtName}
+                    </Option>
                   ))}
                 </Select>
               </Form.Item>
@@ -187,25 +215,35 @@ const ShowBooking = (props) => {
                   placeholder="Select a date"
                   format="YYYY-MM-DD"
                   onChange={handleDateChange}
-                  disabledDate={(current) => current && current < moment().startOf('day')}
+                  disabledDate={(current) =>
+                    current && current < moment().startOf("day")
+                  }
                 />
               </Form.Item>
               <Form.Item name="courtTimeSlotId">
-                {courtTimeSlots.filter(timeSlot => timeSlot.status === 'AVAILABLE').map((timeSlot) => (
-                  <Tag
-                    key={timeSlot.courtTimeSlotId}
-                    color={selectedTimeSlot === timeSlot.courtTimeSlotId ? 'blue' : 'default'}
-                    onClick={() => handleTimeSlotClick(timeSlot.courtTimeSlotId)}
-                  >
-                    {timeSlot.start_time} - {timeSlot.end_time}
-                  </Tag>
-                ))}
+                {courtTimeSlots
+                  .filter((timeSlot) => timeSlot.status === "AVAILABLE")
+                  .map((timeSlot) => (
+                    <Tag
+                      key={timeSlot.courtTimeSlotId}
+                      color={
+                        selectedTimeSlot === timeSlot.courtTimeSlotId
+                          ? "blue"
+                          : "default"
+                      }
+                      onClick={() =>
+                        handleTimeSlotClick(timeSlot.courtTimeSlotId)
+                      }
+                    >
+                      {timeSlot.start_time} - {timeSlot.end_time}
+                    </Tag>
+                  ))}
               </Form.Item>
             </Form>
           </Modal>
         </Card>
       ) : (
-        navigate('/')
+        navigate("/")
       )}
     </>
   );
